@@ -1,0 +1,14 @@
+name = "gallery"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# KV 命名空间绑定
+[[kv_namespaces]]
+binding = "KV"
+id = "4ebf2d12b55c4cc3bdc38898f82ac80c"
+
+# R2 存储桶绑定
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "stuffimg"

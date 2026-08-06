@@ -1,0 +1,215 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/components/AuthContext';
+import { Photo } from '@/types';
+
+export default function PhotoDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const [photo, setPhoto] = useState<Photo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [contactInfo, setContactInfo] = useState<{ contact: string; link: string; remaining: number } | null>(null);
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactError, setContactError] = useState('');
+  const [showFullImage, setShowFullImage] = useState(false);
+  const router = useRouter();
+  const { user, token } = useAuth();
+
+  useEffect(() => {
+    fetchPhoto();
+  }, [id]);
+
+  const fetchPhoto = async () => {
+    try {
+      const response = await fetch(`/api/photos/${id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setPhoto(result.data);
+      } else {
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Failed to fetch photo:', error);
+      router.push('/');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewContact = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    setContactLoading(true);
+    setContactError('');
+
+    try {
+      const response = await fetch(`/api/photos/${id}/contact`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setContactInfo(result.data);
+      } else if (result.requireLogin) {
+        router.push('/login');
+      } else {
+        setContactError(result.error);
+      }
+    } catch (error) {
+      setContactError('获取联系方式失败');
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (!photo) {
+    return null;
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
+        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        返回首页
+      </Link>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <div 
+            className="aspect-square relative overflow-hidden bg-gray-100 rounded-xl cursor-pointer"
+            onClick={() => setShowFullImage(true)}
+          >
+            <img
+              src={`/api/photos/${photo.id}/original`}
+              alt={photo.name}
+              className="w-full h-full object-contain"
+            />
+            <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-lg">
+              点击查看原图
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{photo.name}</h1>
+            <p className="mt-2 text-4xl font-bold text-primary-600">¥{photo.price}</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center text-gray-600">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{photo.city} {photo.district}</span>
+            </div>
+
+            {photo.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {photo.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">联系方式</h3>
+            
+            {contactInfo ? (
+              <div className="space-y-3">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">联系方式</p>
+                  <p className="font-medium text-gray-900">{contactInfo.contact}</p>
+                </div>
+                {contactInfo.link && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500 mb-1">链接</p>
+                    <a 
+                      href={contactInfo.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-primary-600 hover:text-primary-700 break-all"
+                    >
+                      {contactInfo.link}
+                    </a>
+                  </div>
+                )}
+                {user && !user.is_member && (
+                  <p className="text-sm text-gray-500">
+                    今日剩余查看次数: {contactInfo.remaining}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <button
+                  onClick={handleViewContact}
+                  disabled={contactLoading}
+                  className="w-full btn-primary py-3"
+                >
+                  {contactLoading ? '加载中...' : '点击查看'}
+                </button>
+                {contactError && (
+                  <p className="mt-2 text-sm text-red-600">{contactError}</p>
+                )}
+                {!user && (
+                  <p className="mt-2 text-sm text-gray-500 text-center">
+                    登录后可查看联系方式
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showFullImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowFullImage(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full"
+            onClick={() => setShowFullImage(false)}
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={`/api/photos/${photo.id}/original`}
+            alt={photo.name}
+            className="max-w-full max-h-full object-contain"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
