@@ -13,14 +13,14 @@
     "pages:deploy": "npx wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
-    "next": "^14.2.0",
+    "next": "14.2.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "bcryptjs": "^2.4.3",
     "jose": "^5.2.0"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.8.0",
+    "@cloudflare/next-on-pages": "1.12.1",
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
