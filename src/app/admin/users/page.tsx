@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthContext';
+import Pagination from '@/components/Pagination';
+import { toCSV, downloadCSV } from '@/lib/csv';
 
 interface UserData {
   username: string;
@@ -12,12 +14,16 @@ interface UserData {
   created_at: string;
 }
 
+const DEFAULT_PAGE_SIZE = 15;
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [isMember, setIsMember] = useState(false);
   const [memberExpire, setMemberExpire] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const { token } = useAuth();
 
   useEffect(() => {
@@ -30,7 +36,7 @@ export default function AdminUsersPage() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const result = await response.json();
-      
+
       if (result.success) {
         setUsers(result.data);
       }
@@ -40,6 +46,9 @@ export default function AdminUsersPage() {
       setLoading(false);
     }
   };
+
+  const paginatedUsers = users.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
 
   const handleEdit = (user: UserData) => {
     setEditingUser(user);
@@ -75,6 +84,19 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleExport = () => {
+    const headers = ['username', 'email', 'role', 'is_member', 'member_expire', 'created_at'];
+    const rows = users.map(u => [
+      u.username,
+      u.email,
+      u.role,
+      u.is_member ? 'true' : 'false',
+      u.member_expire || '',
+      u.created_at,
+    ]);
+    downloadCSV(toCSV(headers, rows), `users_${new Date().toISOString().split('T')[0]}.csv`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -85,7 +107,12 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">用户管理</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">用户管理</h1>
+        <button onClick={handleExport} className="btn-secondary">
+          导出 CSV
+        </button>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
@@ -112,7 +139,7 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
+            {paginatedUsers.map((user) => (
               <tr key={user.username} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {user.username}
@@ -162,6 +189,18 @@ export default function AdminUsersPage() {
             <p className="text-gray-500">暂无用户</p>
           </div>
         )}
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={users.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
       </div>
 
       {editingUser && (
@@ -183,7 +222,7 @@ export default function AdminUsersPage() {
                   设置为会员
                 </label>
               </div>
-              
+
               {isMember && (
                 <div>
                   <label className="label">会员过期时间</label>

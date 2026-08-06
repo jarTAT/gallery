@@ -1,32 +1,59 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
 import { Photo } from '@/types';
+import Pagination from '@/components/Pagination';
+import { toCSV, downloadCSV } from '@/lib/csv';
+
+const DEFAULT_PAGE_SIZE = 15;
 
 export default function AdminPhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [importing, setImporting] = useState(false);
+  const [message, setMessage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { token } = useAuth();
 
-  useEffect(() => {
-    fetchPhotos();
-  }, []);
-
-  const fetchPhotos = async () => {
+  const fetchPhotos = async (pageNum: number, size: number) => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/photos?limit=100');
+      const params = new URLSearchParams();
+      params.set('page', pageNum.toString());
+      params.set('limit', size.toString());
+      const response = await fetch(`/api/photos?${params.toString()}`);
       const result = await response.json();
-      
+
       if (result.success) {
-        setPhotos(result.data.data);
+        const data = result.data;
+        setPhotos(data.data);
+        setTotal(data.total);
+        setTotalPages(Math.max(1, Math.ceil(data.total / size)));
       }
     } catch (error) {
       console.error('Failed to fetch photos:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchPhotos(page, pageSize);
+  }, [page, pageSize]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPage(1);
   };
 
   const handleDelete = async (id: string) => {
@@ -39,7 +66,7 @@ export default function AdminPhotosPage() {
       });
 
       if (response.ok) {
-        setPhotos(photos.filter(p => p.id !== id));
+        fetchPhotos(page, pageSize);
       }
     } catch (error) {
       console.error('Failed to delete photo:', error);
@@ -67,7 +94,77 @@ export default function AdminPhotosPage() {
     }
   };
 
-  if (loading) {
+  const handleExport = async () => {
+    try {
+      const response = await fetch('/api/photos?limit=10000');
+      const result = await response.json();
+      if (!result.success) return;
+
+      const allPhotos: Photo[] = result.data.data;
+      const headers = ['name', 'price', 'tags', 'city', 'district', 'contact', 'link', 'album_id', 'is_pinned', 'created_at'];
+      const rows = allPhotos.map(p => [
+        p.name,
+        p.price,
+        p.tags.join('|'),
+        p.city,
+        p.district,
+        p.contact,
+        p.link,
+        p.album_id,
+        p.is_pinned ? 'true' : 'false',
+        p.created_at,
+      ]);
+      downloadCSV(toCSV(headers, rows), `photos_${new Date().toISOString().split('T')[0]}.csv`);
+    } catch (error) {
+      console.error('Failed to export photos:', error);
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!/\.csv$/i.test(file.name)) {
+      setMessage('请选择 CSV 文件');
+      return;
+    }
+
+    const text = await file.text();
+    if (!text.trim()) {
+      setMessage('文件内容为空');
+      return;
+    }
+
+    setImporting(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/photos/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ csv: text }),
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        const errCount = result.data.errors.length;
+        setMessage(`导入成功 ${result.data.imported} 条${errCount > 0 ? `，跳过 ${errCount} 条` : ''}`);
+        fetchPhotos(1, pageSize);
+        setPage(1);
+      } else {
+        setMessage(result.error || '导入失败');
+      }
+    } catch (error) {
+      console.error('Failed to import photos:', error);
+      setMessage('导入出错');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  if (loading && photos.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -77,12 +174,37 @@ export default function AdminPhotosPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <h1 className="text-2xl font-bold text-gray-900">照片管理</h1>
-        <Link href="/admin/photos/upload" className="btn-primary">
-          上传照片
-        </Link>
+        <div className="flex items-center gap-2">
+          <button onClick={handleExport} className="btn-secondary" disabled={loading}>
+            导出 CSV
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary"
+            disabled={importing}
+          >
+            {importing ? '导入中...' : '导入 CSV'}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+          <Link href="/admin/photos/upload" className="btn-primary">
+            上传照片
+          </Link>
+        </div>
       </div>
+
+      {message && (
+        <div className="mb-4 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg text-sm">
+          {message}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <table className="w-full">
@@ -111,11 +233,17 @@ export default function AdminPhotosPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
-                      <img
-                        className="h-10 w-10 rounded-lg object-cover"
-                        src={`/api/photos/${photo.id}/thumb`}
-                        alt={photo.name}
-                      />
+                      {photo.r2_key ? (
+                        <img
+                          className="h-10 w-10 rounded-lg object-cover"
+                          src={`/api/photos/${photo.id}/thumb`}
+                          alt={photo.name}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                          无图
+                        </div>
+                      )}
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
@@ -180,6 +308,15 @@ export default function AdminPhotosPage() {
             <p className="text-gray-500">暂无照片</p>
           </div>
         )}
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
       </div>
     </div>
   );
