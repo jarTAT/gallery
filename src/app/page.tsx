@@ -153,8 +153,6 @@ export default function HomePage() {
           )}
         </>
       )}
-        </>
-      )}
       
       {loading && photos.length === 0 && (
         <div className="text-center py-12">
