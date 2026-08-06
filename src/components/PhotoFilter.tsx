@@ -5,6 +5,7 @@ import { useState } from 'react';
 interface PhotoFilterProps {
   onFilter: (filters: FilterState) => void;
   initialFilters?: FilterState;
+  cities?: string[];
 }
 
 export interface FilterState {
@@ -22,7 +23,7 @@ const PRICE_RANGES = [
   { label: '1000以上', min: 1000, max: null },
 ];
 
-export default function PhotoFilter({ onFilter, initialFilters }: PhotoFilterProps) {
+export default function PhotoFilter({ onFilter, initialFilters, cities = [] }: PhotoFilterProps) {
   const [filters, setFilters] = useState<FilterState>(
     initialFilters || {
       search: '',
@@ -33,10 +34,11 @@ export default function PhotoFilter({ onFilter, initialFilters }: PhotoFilterPro
     }
   );
 
-  const [selectedPriceRange, setSelectedPriceRange] = useState(0);
+  const [priceIndex, setPriceIndex] = useState(0);
 
-  const handlePriceRangeSelect = (index: number) => {
-    setSelectedPriceRange(index);
+  const handlePriceChange = (value: string) => {
+    const index = parseInt(value, 10);
+    setPriceIndex(index);
     const range = PRICE_RANGES[index];
     setFilters(prev => ({
       ...prev,
@@ -51,21 +53,16 @@ export default function PhotoFilter({ onFilter, initialFilters }: PhotoFilterPro
   };
 
   const handleReset = () => {
-    setFilters({
+    const reset: FilterState = {
       search: '',
       min_price: null,
       max_price: null,
       city: '',
       tags: [],
-    });
-    setSelectedPriceRange(0);
-    onFilter({
-      search: '',
-      min_price: null,
-      max_price: null,
-      city: '',
-      tags: [],
-    });
+    };
+    setFilters(reset);
+    setPriceIndex(0);
+    onFilter(reset);
   };
 
   return (
@@ -77,40 +74,40 @@ export default function PhotoFilter({ onFilter, initialFilters }: PhotoFilterPro
             type="text"
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-            placeholder="名称、标签、城市..."
+            placeholder="名称、标签、城市等，可用空格或逗号分隔多个关键字"
             className="input"
           />
         </div>
         
         <div>
           <label className="label">价格区间</label>
-          <div className="flex flex-wrap gap-2">
+          <select
+            value={priceIndex}
+            onChange={(e) => handlePriceChange(e.target.value)}
+            className="input"
+          >
             {PRICE_RANGES.map((range, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => handlePriceRangeSelect(index)}
-                className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                  selectedPriceRange === index
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
+              <option key={index} value={index}>
                 {range.label}
-              </button>
+              </option>
             ))}
-          </div>
+          </select>
         </div>
         
         <div>
           <label className="label">城市</label>
-          <input
-            type="text"
+          <select
             value={filters.city}
             onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
-            placeholder="输入城市名称..."
             className="input"
-          />
+          >
+            <option value="">全部城市</option>
+            {cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
         </div>
         
         <div className="flex items-end gap-2">

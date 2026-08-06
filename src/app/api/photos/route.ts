@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     
     let photos = await getAllPhotos(kv);
     
+    const cities = [...new Set(photos.map(p => p.city).filter(Boolean))].sort();
+    
     if (min_price !== undefined) {
       photos = photos.filter(p => p.price >= min_price);
     }
@@ -37,13 +39,22 @@ export async function GET(request: NextRequest) {
       photos = photos.filter(p => p.city.toLowerCase().includes(city.toLowerCase()));
     }
     if (search) {
-      const searchLower = search.toLowerCase();
-      photos = photos.filter(p => 
-        p.name.toLowerCase().includes(searchLower) ||
-        p.tags.some(t => t.toLowerCase().includes(searchLower)) ||
-        p.city.toLowerCase().includes(searchLower) ||
-        p.district.toLowerCase().includes(searchLower)
-      );
+      const keywords = search
+        .split(/[\s,]+/)
+        .map(k => k.trim().toLowerCase())
+        .filter(Boolean);
+      
+      if (keywords.length > 0) {
+        photos = photos.filter(p => {
+          const haystack = [
+            p.name.toLowerCase(),
+            ...p.tags.map(t => t.toLowerCase()),
+            p.city.toLowerCase(),
+            p.district.toLowerCase(),
+          ];
+          return keywords.every(kw => haystack.some(h => h.includes(kw)));
+        });
+      }
     }
     if (album_id) {
       photos = photos.filter(p => p.album_id === album_id);
@@ -68,7 +79,7 @@ export async function GET(request: NextRequest) {
       has_more: offset + limit < total,
     };
     
-    return NextResponse.json({ success: true, data: response });
+    return NextResponse.json({ success: true, data: response, cities });
   } catch (error) {
     console.error('Get photos error:', error);
     return NextResponse.json(

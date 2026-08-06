@@ -11,6 +11,7 @@ export default function HomePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
+  const [cities, setCities] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     min_price: null,
@@ -44,6 +45,9 @@ export default function HomePage() {
         }
         setHasMore(data.has_more);
         setTotal(data.total);
+        if (pageNum === 1 && Array.isArray(result.cities)) {
+          setCities(result.cities);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch photos:', error);
@@ -77,7 +81,7 @@ export default function HomePage() {
         </p>
       </div>
       
-      <PhotoFilter onFilter={handleFilter} initialFilters={filters} />
+      <PhotoFilter onFilter={handleFilter} initialFilters={filters} cities={cities} />
       
       {photos.length === 0 && !loading ? (
         <div className="text-center py-12">
