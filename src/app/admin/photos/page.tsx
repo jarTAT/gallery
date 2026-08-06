@@ -18,6 +18,8 @@ export default function AdminPhotosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { token } = useAuth();
 
@@ -35,6 +37,7 @@ export default function AdminPhotosPage() {
         setPhotos(data.data);
         setTotal(data.total);
         setTotalPages(Math.max(1, Math.ceil(data.total / size)));
+        setSelected(new Set());
       }
     } catch (error) {
       console.error('Failed to fetch photos:', error);
@@ -91,6 +94,60 @@ export default function AdminPhotosPage() {
       }
     } catch (error) {
       console.error('Failed to toggle pin:', error);
+    }
+  };
+
+  const handleToggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    const allSelected = photos.every(p => selected.has(p.id));
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(photos.map(p => p.id)));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`确定要删除选中的 ${selected.size} 张照片吗？此操作不可恢复。`)) return;
+
+    setDeleting(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/photos/batch-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids: Array.from(selected) }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage(`已删除 ${result.data.deleted} 张照片`);
+        setSelected(new Set());
+        fetchPhotos(page, pageSize);
+      } else {
+        setMessage(result.error || '批量删除失败');
+      }
+    } catch (error) {
+      console.error('Failed to batch delete photos:', error);
+      setMessage('批量删除出错');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -176,7 +233,16 @@ export default function AdminPhotosPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <h1 className="text-2xl font-bold text-gray-900">照片管理</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {selected.size > 0 && (
+            <button
+              onClick={handleBatchDelete}
+              disabled={deleting}
+              className="btn-danger"
+            >
+              {deleting ? '删除中...' : `删除选中 (${selected.size})`}
+            </button>
+          )}
           <button onClick={handleExport} className="btn-secondary" disabled={loading}>
             导出 CSV
           </button>
@@ -210,6 +276,14 @@ export default function AdminPhotosPage() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-primary-600 rounded cursor-pointer"
+                  checked={photos.length > 0 && photos.every(p => selected.has(p.id))}
+                  onChange={handleSelectAll}
+                />
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 照片
               </th>
@@ -230,6 +304,14 @@ export default function AdminPhotosPage() {
           <tbody className="divide-y divide-gray-200">
             {photos.map((photo) => (
               <tr key={photo.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap w-10">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-primary-600 rounded cursor-pointer"
+                    checked={selected.has(photo.id)}
+                    onChange={() => handleToggleSelect(photo.id)}
+                  />
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
