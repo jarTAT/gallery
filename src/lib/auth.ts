@@ -73,7 +73,7 @@ export async function extractTokenFromRequest(request: Request): Promise<string 
   return null;
 }
 
-export async function getCurrentUser(request: Request, secret?: string): Promise<JwtPayload | null> {
+export async function getCurrentUser(request: Request, secret: string): Promise<JwtPayload | null> {
   const token = await extractTokenFromRequest(request);
   if (!token) return null;
   return verifyToken(token, secret);
