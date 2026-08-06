@@ -3,13 +3,14 @@ import { getKV, getAllPhotos, setPhoto } from '@/lib/kv';
 import { getR2, uploadPhoto, uploadThumbnail } from '@/lib/r2';
 import { getCurrentUser } from '@/lib/auth';
 import { Photo, PaginatedResponse } from '@/types';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
-export async function GET(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function GET(request: NextRequest) {
   try {
-    const kv = getKV(context.env);
+    const env = await getEnv();
+    const kv = getKV(env);
     
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -77,9 +78,10 @@ export async function GET(request: NextRequest, context: { params: Record<string
   }
 }
 
-export async function POST(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -87,8 +89,8 @@ export async function POST(request: NextRequest, context: { params: Record<strin
       );
     }
     
-    const kv = getKV(context.env);
-    const r2 = getR2(context.env);
+    const kv = getKV(env);
+    const r2 = getR2(env);
     
     const formData = await request.formData();
     const file = formData.get('file') as File;

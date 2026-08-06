@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getAlbum, updateAlbum, deleteAlbum } from '@/lib/kv';
 import { getCurrentUser } from '@/lib/auth';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const kv = getKV(context.env);
+    const env = await getEnv();
+    const kv = getKV(env);
     
     const album = await getAlbum(kv, context.params.id);
     if (!album) {
@@ -32,10 +33,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -43,7 +45,7 @@ export async function PUT(
       );
     }
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     const body = await request.json();
     const updates: Record<string, unknown> = {};
@@ -67,10 +69,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -78,7 +81,7 @@ export async function DELETE(
       );
     }
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     await deleteAlbum(kv, context.params.id);
     

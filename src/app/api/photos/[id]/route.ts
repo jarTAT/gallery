@@ -3,16 +3,17 @@ import { getKV, getPhoto, updatePhoto, deletePhoto } from '@/lib/kv';
 import { getR2, deletePhotoFiles } from '@/lib/r2';
 import { getCurrentUser } from '@/lib/auth';
 import { Photo } from '@/types';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const kv = getKV(context.env);
+    const env = await getEnv();
+    const kv = getKV(env);
     
     const photo = await getPhoto(kv, context.params.id);
     if (!photo) {
@@ -34,10 +35,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -45,7 +47,7 @@ export async function PUT(
       );
     }
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     const body = await request.json();
     const updates: Partial<Photo> = {};
@@ -75,10 +77,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -86,8 +89,8 @@ export async function DELETE(
       );
     }
     
-    const kv = getKV(context.env);
-    const r2 = getR2(context.env);
+    const kv = getKV(env);
+    const r2 = getR2(env);
     
     await deletePhotoFiles(r2, context.params.id);
     await deletePhoto(kv, context.params.id);

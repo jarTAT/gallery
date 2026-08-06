@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
-export async function GET(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function GET(request: NextRequest) {
   try {
+    const env = await getEnv();
     return NextResponse.json({
       success: true,
       data: {
-        adminContact: context.env.ADMIN_CONTACT || '',
+        adminContact: env.ADMIN_CONTACT || '',
       },
     });
   } catch (error) {

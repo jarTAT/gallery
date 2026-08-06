@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getPhoto, getDailyUsage, incrementDailyUsage } from '@/lib/kv';
 import { getCurrentUser } from '@/lib/auth';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     const photo = await getPhoto(kv, context.params.id);
     if (!photo) {

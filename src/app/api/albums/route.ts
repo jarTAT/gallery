@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getAllAlbums, setAlbum } from '@/lib/kv';
 import { getCurrentUser } from '@/lib/auth';
 import { Album } from '@/types';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
-export async function GET(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function GET(request: NextRequest) {
   try {
-    const kv = getKV(context.env);
+    const env = await getEnv();
+    const kv = getKV(env);
     
     const albums = await getAllAlbums(kv);
     albums.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -23,9 +24,10 @@ export async function GET(request: NextRequest, context: { params: Record<string
   }
 }
 
-export async function POST(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest, context: { params: Record<strin
       );
     }
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     const body = await request.json();
     const { name, description } = body;

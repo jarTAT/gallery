@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getUser, updateUser } from '@/lib/kv';
 import { verifyPassword, verifyAdminPassword, createToken, createAdminToken } from '@/lib/auth';
-import { User } from '@/types';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
-export async function POST(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function POST(request: NextRequest) {
   try {
-    const kv = getKV(context.env);
+    const env = await getEnv();
+    const kv = getKV(env);
     
     const body = await request.json();
     const { username, password } = body;
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, context: { params: Record<strin
     const isAdminLogin = username === 'admin';
     
     if (isAdminLogin) {
-      const isAdminValid = await verifyAdminPassword(password, context.env.ADMIN_PASSWORD);
+      const isAdminValid = await verifyAdminPassword(password, env.ADMIN_PASSWORD);
       if (!isAdminValid) {
         return NextResponse.json(
           { success: false, error: 'Invalid admin password' },
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, context: { params: Record<strin
         );
       }
       
-      const token = await createAdminToken(context.env.JWT_SECRET);
+      const token = await createAdminToken(env.JWT_SECRET);
       const response = NextResponse.json({
         success: true,
         data: { token, user: { username: 'admin', role: 'admin', is_member: true } },
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest, context: { params: Record<strin
       username: userData.username,
       role: userData.role,
       is_member,
-    }, context.env.JWT_SECRET);
+    }, env.JWT_SECRET);
     
     const response = NextResponse.json({
       success: true,

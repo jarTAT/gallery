@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getUser, updateUser } from '@/lib/kv';
 import { getCurrentUser } from '@/lib/auth';
 import { User } from '@/types';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
-export async function GET(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest, context: { params: Record<string
       );
     }
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
@@ -55,9 +56,10 @@ export async function GET(request: NextRequest, context: { params: Record<string
   }
 }
 
-export async function PUT(request: NextRequest, context: { params: Record<string, string>; env: CloudflareEnv }) {
+export async function PUT(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request, context.env.JWT_SECRET);
+    const env = await getEnv();
+    const user = await getCurrentUser(request, env.JWT_SECRET);
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -65,7 +67,7 @@ export async function PUT(request: NextRequest, context: { params: Record<string
       );
     }
     
-    const kv = getKV(context.env);
+    const kv = getKV(env);
     
     const body = await request.json();
     const { username, is_member, member_expire } = body;

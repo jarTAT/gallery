@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getPhoto } from '@/lib/kv';
 import { getR2, getPhotoObject } from '@/lib/r2';
-import { CloudflareEnv } from '@/types/cloudflare';
+import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string }; env: CloudflareEnv }
+  context: { params: { id: string } }
 ) {
   try {
-    const kv = getKV(context.env);
-    const r2 = getR2(context.env);
+    const env = await getEnv();
+    const kv = getKV(env);
+    const r2 = getR2(env);
     
     const photo = await getPhoto(kv, context.params.id);
     if (!photo) {
