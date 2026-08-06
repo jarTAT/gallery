@@ -23,6 +23,8 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const [contact, setContact] = useState('');
   const [link, setLink] = useState('');
   const [albumId, setAlbumId] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   
   const router = useRouter();
   const { token } = useAuth();
@@ -71,6 +73,18 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) {
@@ -82,23 +96,45 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
     setError('');
 
     try {
-      const response = await fetch(`/api/photos/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name,
-          price: parseInt(price) || 0,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-          city,
-          district,
-          contact,
-          link,
-          album_id: albumId,
-        }),
-      });
+      const payload: Record<string, unknown> = {
+        name,
+        price: parseInt(price) || 0,
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        city,
+        district,
+        contact,
+        link,
+        album_id: albumId,
+      };
+
+      let response: Response;
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${token}`,
+      };
+
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        Object.entries(payload).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            formData.append(key, value.join(','));
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, String(value));
+          }
+        });
+        response = await fetch(`/api/photos/${id}`, {
+          method: 'PUT',
+          headers,
+          body: formData,
+        });
+      } else {
+        headers['Content-Type'] = 'application/json';
+        response = await fetch(`/api/photos/${id}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(payload),
+        });
+      }
 
       const result = await response.json();
 
@@ -139,11 +175,31 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
 
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
-            <img
-              src={`/api/photos/${photo.id}/thumb`}
-              alt={photo.name}
-              className="h-32 rounded-lg"
+            <label className="label">更换照片</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="input mb-3"
             />
+            {preview ? (
+              <img
+                src={preview}
+                alt="新照片预览"
+                className="h-32 rounded-lg"
+              />
+            ) : (
+              <img
+                src={`/api/photos/${photo.id}/thumb`}
+                alt={photo.name}
+                className="h-32 rounded-lg"
+              />
+            )}
+            {file && (
+              <p className="text-sm text-primary-600 mt-2">
+                已选择新照片，保存后将替换原图
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -244,7 +300,7 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
             disabled={saving}
             className="btn-primary"
           >
-            {saving ? '保存中...' : '保存修改'}
+            {saving ? '保存中...' : file ? '保存并替换照片' : '保存修改'}
           </button>
           <button
             type="button"
