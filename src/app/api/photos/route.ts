@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     
     let photos = await getAllPhotos(kv);
     
-    const cities = [...new Set(photos.map(p => p.city).filter(Boolean))].sort();
+    const cities = Array.from(new Set(photos.map(p => p.city).filter(Boolean))).sort();
     
     if (min_price !== undefined) {
       photos = photos.filter(p => p.price >= min_price);
