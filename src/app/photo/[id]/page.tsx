@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
 import { Photo } from '@/types';
 
+export const runtime = 'edge';
+
 export default function PhotoDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const [photo, setPhoto] = useState<Photo | null>(null);
