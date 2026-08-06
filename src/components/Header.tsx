@@ -8,6 +8,8 @@ export default function Header() {
   const { user, logout, isAdmin } = useAuth();
   const [showContact, setShowContact] = useState(false);
   const [adminContact, setAdminContact] = useState('');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [menuTimer, setMenuTimer] = useState<number | null>(null);
 
   useEffect(() => {
     fetch('/api/site-info')
@@ -46,7 +48,17 @@ export default function Header() {
                     管理后台
                   </Link>
                 )}
-                <div className="relative group">
+                <div
+                  className="relative"
+                  onMouseEnter={() => { setUserMenuOpen(true); if (menuTimer) clearTimeout(menuTimer); setMenuTimer(null); }}
+                  onMouseLeave={() => {
+                    const t = window.setTimeout(() => {
+                      setUserMenuOpen(false);
+                      setMenuTimer(null);
+                    }, 250);
+                    setMenuTimer(t);
+                  }}
+                >
                   <button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                       <span className="text-sm font-medium">
@@ -60,17 +72,19 @@ export default function Header() {
                       </span>
                     )}
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block">
-                    <Link href="/user/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                      用户中心
-                    </Link>
-                    <button
-                      onClick={logout}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      退出登录
-                    </button>
-                  </div>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2">
+                      <Link href="/user/dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        用户中心
+                      </Link>
+                      <button
+                        onClick={logout}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        退出登录
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
