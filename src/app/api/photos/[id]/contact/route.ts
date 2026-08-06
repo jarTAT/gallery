@@ -35,7 +35,7 @@ export async function POST(
     
     if (!user.is_member && usage.contact_views >= 5) {
       return NextResponse.json(
-        { success: false, error: 'Daily limit reached (5 views per day for non-members)' },
+        { success: false, error: '非会员每日最多查看5次；如需查看更多请联系管理员加入会员。' },
         { status: 429 }
       );
     }
