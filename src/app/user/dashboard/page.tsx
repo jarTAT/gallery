@@ -5,14 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
 
 export default function UserDashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (loading) return;
     if (!user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
+
+  if (loading) {
+    return null;
+  }
 
   if (!user) {
     return null;
