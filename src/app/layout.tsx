@@ -2,10 +2,41 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/components/AuthContext';
 import Header from '@/components/Header';
+import { siteConfig, buildKeywords } from '@/lib/site-config';
 
 export const metadata: Metadata = {
-  title: 'Gallery - Photo Gallery',
-  description: 'A beautiful photo gallery powered by Cloudflare',
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  keywords: buildKeywords(),
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.name }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'zh_CN',
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    images: [{ url: `${siteConfig.url}/og-image.png`, width: 1200, height: 630, alt: siteConfig.name }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.title,
+    description: siteConfig.description,
+  },
 };
 
 export default function RootLayout({
@@ -15,6 +46,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
+      <head>
+        <meta name="format-detection" content="telephone=no" />
+        <link rel="canonical" href={siteConfig.url} />
+      </head>
       <body className="font-sans antialiased">
         <AuthProvider>
           <div className="min-h-screen flex flex-col">

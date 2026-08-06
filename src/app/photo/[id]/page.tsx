@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
 import { Photo } from '@/types';
+import Seo from '@/components/Seo';
+import { buildKeywords } from '@/lib/site-config';
 
 export const runtime = 'edge';
 
@@ -88,6 +90,11 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Seo
+        title={`${photo.name} - 摄影图片 | ${photo.city}${photo.district}`}
+        description={`${photo.name}，${photo.city}${photo.district}摄影作品，价格 ¥${photo.price}。${photo.tags.length > 0 ? '标签：' + photo.tags.join('、') + '。' : ''}浏览更多高品质摄影图片。`}
+        keywords={buildKeywords([photo.name, photo.city, photo.district, ...photo.tags])}
+      />
       <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

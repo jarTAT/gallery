@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import PhotoCard from '@/components/PhotoCard';
 import PhotoFilter, { FilterState } from '@/components/PhotoFilter';
 import { Photo, PaginatedResponse } from '@/types';
+import Seo from '@/components/Seo';
+import { siteConfig, buildKeywords } from '@/lib/site-config';
 
 const PAGE_SIZE = 12;
 
@@ -89,6 +91,11 @@ export default function HomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Seo
+        title={siteConfig.title}
+        description={siteConfig.description}
+        keywords={buildKeywords()}
+      />
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">照片库</h1>
         <p className="text-gray-600">
