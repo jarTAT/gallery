@@ -19,30 +19,30 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
         />
         <div className="absolute top-2 right-2 flex gap-2">
           {photo.is_pinned && (
-            <span className="px-2 py-1 bg-amber-500 text-white text-sm rounded-lg shadow">
+            <span className="px-2 py-1 bg-amber-500 text-white text-xs rounded-lg shadow">
               ★ 置顶
             </span>
           )}
-          <span className="px-2 py-1 bg-black/50 text-white text-sm rounded-lg">
+          <span className="px-2 py-1 bg-accent-500 text-white text-xs font-medium rounded-lg shadow">
             ¥{photo.price}
           </span>
         </div>
       </div>
       <div className="p-4">
-        <h3 className="font-medium text-gray-900 truncate">{photo.name}</h3>
-        <div className="mt-2 flex items-center text-sm text-gray-500">
+        <h3 className="font-medium text-gray-900 text-sm truncate">{photo.name}</h3>
+        <div className="mt-1.5 flex items-center text-sm text-gray-500">
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span>{photo.city} {photo.district}</span>
+          <span className="text-xs">{photo.city} {photo.district}</span>
         </div>
         {photo.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {photo.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
-                className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full"
+                className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full"
               >
                 {tag}
               </span>
