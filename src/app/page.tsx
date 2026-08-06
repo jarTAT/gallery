@@ -5,11 +5,13 @@ import PhotoCard from '@/components/PhotoCard';
 import PhotoFilter, { FilterState } from '@/components/PhotoFilter';
 import { Photo, PaginatedResponse } from '@/types';
 
+const PAGE_SIZE = 12;
+
 export default function HomePage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [cities, setCities] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
@@ -25,7 +27,7 @@ export default function HomePage() {
     try {
       const params = new URLSearchParams();
       params.set('page', pageNum.toString());
-      params.set('limit', '20');
+      params.set('limit', PAGE_SIZE.toString());
       
       if (currentFilters.search) params.set('search', currentFilters.search);
       if (currentFilters.min_price !== null) params.set('min_price', currentFilters.min_price.toString());
@@ -38,13 +40,9 @@ export default function HomePage() {
       
       if (result.success) {
         const data: PaginatedResponse<Photo> = result.data;
-        if (pageNum === 1) {
-          setPhotos(data.data);
-        } else {
-          setPhotos(prev => [...prev, ...data.data]);
-        }
-        setHasMore(data.has_more);
+        setPhotos(data.data);
         setTotal(data.total);
+        setTotalPages(Math.max(1, Math.ceil(data.total / PAGE_SIZE)));
         if (pageNum === 1 && Array.isArray(result.cities)) {
           setCities(result.cities);
         }
@@ -66,10 +64,27 @@ export default function HomePage() {
     setPage(1);
   };
 
-  const loadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchPhotos(nextPage, filters);
+  const goToPage = (pageNum: number) => {
+    if (pageNum < 1 || pageNum > totalPages) return;
+    setPage(pageNum);
+    fetchPhotos(pageNum, filters);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+    pages.push(1);
+    if (page > 3) pages.push('ellipsis');
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (page < totalPages - 2) pages.push('ellipsis');
+    pages.push(totalPages);
+    return pages;
   };
 
   return (
@@ -98,17 +113,46 @@ export default function HomePage() {
             ))}
           </div>
           
-          {hasMore && (
-            <div className="mt-8 text-center">
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-1">
               <button
-                onClick={loadMore}
-                disabled={loading}
-                className="btn-primary"
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1 || loading}
+                className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {loading ? '加载中...' : '加载更多'}
+                上一页
+              </button>
+              {getPageNumbers().map((p, index) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${index}`} className="px-2 text-gray-400 select-none">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p)}
+                    disabled={loading}
+                    className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                      p === page
+                        ? 'bg-primary-600 text-white font-medium'
+                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= totalPages || loading}
+                className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                下一页
               </button>
             </div>
           )}
+        </>
+      )}
         </>
       )}
       
