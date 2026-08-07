@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getPhoto } from '@/lib/kv';
-import { getR2, getPhotoObject } from '@/lib/r2';
+import { getR2, getPhotoImageObject } from '@/lib/r2';
 import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
@@ -13,7 +13,7 @@ export async function GET(
     const env = await getEnv();
     const kv = getKV(env);
     const r2 = getR2(env);
-    
+
     const photo = await getPhoto(kv, context.params.id);
     if (!photo) {
       return NextResponse.json(
@@ -21,17 +21,31 @@ export async function GET(
         { status: 404 }
       );
     }
-    
-    const object = await getPhotoObject(r2, photo.r2_key);
+
+    const { searchParams } = new URL(request.url);
+    const requestedIndex = parseInt(searchParams.get('index') || '0');
+    const index = Number.isNaN(requestedIndex)
+      ? Math.min(photo.cover_index, photo.images.length - 1)
+      : requestedIndex;
+
+    const image = (photo.images && photo.images[index]) || null;
+    if (!image || !image.key) {
+      return NextResponse.json(
+        { success: false, error: 'Photo file not found' },
+        { status: 404 }
+      );
+    }
+
+    const object = await getPhotoImageObject(r2, image.key);
     if (!object) {
       return NextResponse.json(
         { success: false, error: 'Photo file not found' },
         { status: 404 }
       );
     }
-    
+
     const arrayBuffer = await object.arrayBuffer();
-    
+
     return new NextResponse(arrayBuffer, {
       headers: {
         'Content-Type': object.httpMetadata?.contentType || 'image/jpeg',

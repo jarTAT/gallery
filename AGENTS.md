@@ -23,14 +23,14 @@
 ## 核心架构
 - **环境绑定**：统一用 `src/lib/cloudflare.ts` 的 `getEnv()`（内部 `getRequestContext()`），禁止直接使用 `context.env` 或 `getCloudflareContext`（1.12.1 无此导出）
 - **KV 封装**：`src/lib/kv.ts` — `getKV`、getUser/setUser/updateUser、getPhoto/setPhoto/updatePhoto/deletePhoto、getAllPhotos、albums、每日用量 `getDailyUsage`/`incrementDailyUsage`；索引键 `index:photos` / `index:users` / `index:albums`；用户键 `user:<name>`、照片键 `photo:<id>`
-- **R2 封装**：`src/lib/r2.ts` — 原图 `photos/<id>/original`，缩略图 `thumbnails/<id>/thumb`；`uploadPhoto`/`uploadThumbnail`/`deletePhotoFiles`
+- **R2 封装**：`src/lib/r2.ts` — 多图存储，每张图两个 key：原图 `photos/<photoId>/<imageId>`、缩略图 `thumbnails/<photoId>/<imageId>`；`uploadPhoto(r2, photoId, imageId, buffer, type)` 同时上传原图+缩略图返回 `{key, thumb_key}`；`deletePhotoFiles(r2, images[])` 删除多张；`deletePhotoImageFiles` 删单张
 - **鉴权**：`src/lib/auth.ts` — bcrypt 密码哈希、jose JWT（7 天）、`getCurrentUser(request, env.JWT_SECRET)`；管理员用户名固定 `admin`，密码比对 `ADMIN_PASSWORD` 明文
 - **CSV 工具**：`src/lib/csv.ts`（带 BOM，Excel 兼容）
 - **SEO 配置**：`src/lib/site-config.ts` — 站点标题/描述/关键字集中维护；`src/components/Seo.tsx` 动态注入页面 meta
 
 ## 数据结构（src/types/index.ts）
 - User: username, password_hash, email, role('user'|'admin'), is_member, member_expire, created_at
-- Photo: id, name, price, tags[], city, district, contact, link, album_id, r2_key, thumb_r2_key, is_pinned, created_at
+- Photo: id, name, price, tags[], city, district, contact, link, album_id, images[{key, thumb_key}], cover_index, is_pinned, created_at（多图，图片访问用 `/api/photos/[id]/thumb|original?index=N`）
 - Album: id, name, description, cover_photo_id, created_at
 
 ## API 路由清单

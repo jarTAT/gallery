@@ -18,6 +18,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
   const [contactLoading, setContactLoading] = useState(false);
   const [contactError, setContactError] = useState('');
   const [showFullImage, setShowFullImage] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const router = useRouter();
   const { user, token } = useAuth();
 
@@ -32,6 +33,8 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
       
       if (result.success) {
         setPhoto(result.data);
+        const imgs = Array.isArray(result.data.images) ? result.data.images : [];
+        setActiveIndex(Math.min(result.data.cover_index || 0, Math.max(imgs.length - 1, 0)));
       } else {
         router.push('/');
       }
@@ -88,6 +91,9 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
     return null;
   }
 
+  const images = Array.isArray(photo.images) ? photo.images : [];
+  const coverIndex = Math.min(photo.cover_index || 0, Math.max(images.length - 1, 0));
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Seo
@@ -109,7 +115,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
             onClick={() => setShowFullImage(true)}
           >
             <img
-              src={`/api/photos/${photo.id}/original`}
+              src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
               alt={photo.name}
               className="w-full h-full object-contain"
             />
@@ -117,6 +123,26 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
               点击查看原图
             </div>
           </div>
+
+          {images.length > 1 && (
+            <div className="flex gap-2 flex-wrap">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                    activeIndex === index ? 'border-primary-600' : 'border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  <img
+                    src={`/api/photos/${photo.id}/thumb?index=${index}`}
+                    alt={`${photo.name} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -213,7 +239,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
             </svg>
           </button>
           <img
-            src={`/api/photos/${photo.id}/original`}
+            src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
             alt={photo.name}
             className="max-w-full max-h-full object-contain"
           />

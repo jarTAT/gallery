@@ -315,7 +315,7 @@ export default function AdminPhotosPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
-                      {photo.r2_key ? (
+                      {Array.isArray(photo.images) && photo.images.length > 0 ? (
                         <img
                           className="h-10 w-10 rounded-lg object-cover"
                           src={`/api/photos/${photo.id}/thumb`}

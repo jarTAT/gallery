@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
-import { Photo, Album } from '@/types';
-
-export const runtime = 'edge';
+import { Photo, Album, PhotoImage } from '@/types';
 
 export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -14,7 +12,7 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [tags, setTags] = useState('');
@@ -23,9 +21,10 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const [contact, setContact] = useState('');
   const [link, setLink] = useState('');
   const [albumId, setAlbumId] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
+  const [removeIndices, setRemoveIndices] = useState<number[]>([]);
+
   const router = useRouter();
   const { token } = useAuth();
 
@@ -38,7 +37,7 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
     try {
       const response = await fetch(`/api/photos/${id}`);
       const result = await response.json();
-      
+
       if (result.success) {
         const p = result.data;
         setPhoto(p);
@@ -49,7 +48,7 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
         setDistrict(p.district);
         setContact(p.contact);
         setLink(p.link);
-        setAlbumId(p.album_id);
+        setAlbumId(p.album_id || '');
       } else {
         router.push('/admin/photos');
       }
@@ -73,15 +72,59 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+  const handleNewFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    if (selected.length === 0) return;
+
+    setNewFiles((prev) => [...prev, ...selected]);
+    const newPrevs: string[] = [];
+    selected.forEach((f) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result as string);
+        newPrevs.push(reader.result as string);
+        if (newPrevs.length === selected.length) {
+          setNewPreviews((prev) => [...prev, ...newPrevs]);
+        }
       };
-      reader.readAsDataURL(selectedFile);
+      reader.readAsDataURL(f);
+    });
+  };
+
+  const removeNewFile = (index: number) => {
+    setNewFiles(newFiles.filter((_, i) => i !== index));
+    setNewPreviews(newPreviews.filter((_, i) => i !== index));
+  };
+
+  const toggleRemoveIndex = (index: number) => {
+    setRemoveIndices((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
+  const handleSetCover = async (index: number) => {
+    if (!photo) return;
+    const images = photo.images || [];
+
+    if (removeIndices.includes(index)) {
+      setError('请先取消该图片的移除标记，再设为封面');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/photos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ cover_index: index }),
+      });
+
+      if (response.ok) {
+        fetchPhoto();
+      }
+    } catch (error) {
+      console.error('Failed to set cover:', error);
     }
   };
 
@@ -92,11 +135,23 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
       return;
     }
 
+    const images = photo?.images || [];
+    const remainingCount = images.length - removeIndices.length;
+    if (remainingCount === 0 && newFiles.length === 0) {
+      setError('至少保留一张照片');
+      return;
+    }
+
     setSaving(true);
     setError('');
 
     try {
-      const payload: Record<string, unknown> = {
+      const baseUrl = `/api/photos/${id}`;
+      const authHeaders: Record<string, string> = {
+        'Authorization': `Bearer ${token}`,
+      };
+
+      const body: Record<string, unknown> = {
         name,
         price: parseInt(price) || 0,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
@@ -107,41 +162,45 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
         album_id: albumId,
       };
 
-      let response: Response;
-      const headers: Record<string, string> = {
-        'Authorization': `Bearer ${token}`,
-      };
+      if (removeIndices.length > 0) {
+        body.remove_indices = removeIndices;
+      }
 
-      if (file) {
+      if (newFiles.length > 0) {
         const formData = new FormData();
-        formData.append('file', file);
-        Object.entries(payload).forEach(([key, value]) => {
+        newFiles.forEach((f) => formData.append('files', f));
+        Object.entries(body).forEach(([key, value]) => {
           if (Array.isArray(value)) {
-            formData.append(key, value.join(','));
+            formData.append(key, JSON.stringify(value));
           } else if (value !== null && value !== undefined) {
             formData.append(key, String(value));
           }
         });
-        response = await fetch(`/api/photos/${id}`, {
+
+        const response = await fetch(baseUrl, {
           method: 'PUT',
-          headers,
+          headers: authHeaders,
           body: formData,
         });
+        const result = await response.json();
+        if (result.success) {
+          router.push('/admin/photos');
+        } else {
+          setError(result.error || '保存失败');
+        }
       } else {
-        headers['Content-Type'] = 'application/json';
-        response = await fetch(`/api/photos/${id}`, {
+        authHeaders['Content-Type'] = 'application/json';
+        const response = await fetch(baseUrl, {
           method: 'PUT',
-          headers,
-          body: JSON.stringify(payload),
+          headers: authHeaders,
+          body: JSON.stringify(body),
         });
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        router.push('/admin/photos');
-      } else {
-        setError(result.error || '保存失败');
+        const result = await response.json();
+        if (result.success) {
+          router.push('/admin/photos');
+        } else {
+          setError(result.error || '保存失败');
+        }
       }
     } catch (err) {
       setError('网络错误，请稍后重试');
@@ -162,6 +221,8 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
     return null;
   }
 
+  const images = photo.images || [];
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-8">编辑照片</h1>
@@ -175,30 +236,80 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
 
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
-            <label className="label">更换照片</label>
+            <label className="label">已上传图片 (点击缩略图设置为封面)</label>
+            {images.length === 0 ? (
+              <p className="text-sm text-gray-500">暂无图片</p>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {images.map((img: PhotoImage, index: number) => (
+                  <div
+                    key={index}
+                    className={`relative ${removeIndices.includes(index) ? 'opacity-40' : ''}`}
+                  >
+                    <button type="button" onClick={() => handleSetCover(index)}>
+                      <img
+                        src={`/api/photos/${photo.id}/thumb?index=${index}`}
+                        alt={`Image ${index + 1}`}
+                        className={`h-24 w-24 object-cover rounded-lg border-2 ${
+                          photo.cover_index === index
+                            ? 'border-primary-600'
+                            : 'border-transparent hover:border-gray-300'
+                        }`}
+                      />
+                    </button>
+                    {photo.cover_index === index && (
+                      <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded">
+                        封面
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => toggleRemoveIndex(index)}
+                      className={`absolute -top-2 -right-2 w-6 h-6 rounded-full text-xs text-white flex items-center justify-center ${
+                        removeIndices.includes(index) ? 'bg-green-600' : 'bg-red-600 hover:bg-red-700'
+                      }`}
+                    >
+                      {removeIndices.includes(index) ? '✓' : '×'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {removeIndices.length > 0 && (
+              <p className="text-sm text-red-600 mt-2">
+                已选择 {removeIndices.length} 张移除，保存后生效
+              </p>
+            )}
+          </div>
+
+          <div className="mb-6">
+            <label className="label">添加更多图片 (可多选)</label>
             <input
               type="file"
               accept="image/*"
-              onChange={handleFileChange}
+              multiple
+              onChange={handleNewFiles}
               className="input mb-3"
             />
-            {preview ? (
-              <img
-                src={preview}
-                alt="新照片预览"
-                className="h-32 rounded-lg"
-              />
-            ) : (
-              <img
-                src={`/api/photos/${photo.id}/thumb`}
-                alt={photo.name}
-                className="h-32 rounded-lg"
-              />
-            )}
-            {file && (
-              <p className="text-sm text-primary-600 mt-2">
-                已选择新照片，保存后将替换原图
-              </p>
+            {newPreviews.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {newPreviews.map((preview, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={preview}
+                      alt={`New ${index + 1}`}
+                      className="h-24 w-24 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeNewFile(index)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
@@ -300,7 +411,7 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
             disabled={saving}
             className="btn-primary"
           >
-            {saving ? '保存中...' : file ? '保存并替换照片' : '保存修改'}
+            {saving ? '保存中...' : '保存修改'}
           </button>
           <button
             type="button"

@@ -8,6 +8,11 @@ export interface User {
   created_at: string;
 }
 
+export interface PhotoImage {
+  key: string;
+  thumb_key: string;
+}
+
 export interface Photo {
   id: string;
   name: string;
@@ -18,8 +23,8 @@ export interface Photo {
   contact: string;
   link: string;
   album_id: string;
-  r2_key: string;
-  thumb_r2_key: string;
+  images: PhotoImage[];
+  cover_index: number;
   is_pinned: boolean;
   created_at: string;
 }

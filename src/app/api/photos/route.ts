@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getAllPhotos, setPhoto } from '@/lib/kv';
-import { getR2, uploadPhoto, uploadThumbnail } from '@/lib/r2';
+import { getR2, uploadPhoto } from '@/lib/r2';
 import { getCurrentUser } from '@/lib/auth';
-import { Photo, PaginatedResponse } from '@/types';
+import { Photo, PaginatedResponse, PhotoImage } from '@/types';
 import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const r2 = getR2(env);
     
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const files = formData.getAll('files') as File[];
     const name = formData.get('name') as string;
     const price = parseInt(formData.get('price') as string || '0');
     const tags = (formData.get('tags') as string || '').split(',').filter(Boolean);
@@ -114,19 +114,23 @@ export async function POST(request: NextRequest) {
     const link = formData.get('link') as string || '';
     const album_id = formData.get('album_id') as string || '';
     
-    if (!file || !name) {
+    if (files.length === 0 || !name) {
       return NextResponse.json(
-        { success: false, error: 'File and name are required' },
+        { success: false, error: 'At least one file and name are required' },
         { status: 400 }
       );
     }
     
     const photoId = crypto.randomUUID();
-    const arrayBuffer = await file.arrayBuffer();
-    const contentType = file.type || 'image/jpeg';
+    const images: PhotoImage[] = [];
     
-    const r2Key = await uploadPhoto(r2, photoId, arrayBuffer, contentType);
-    const thumbKey = await uploadThumbnail(r2, photoId, arrayBuffer, contentType);
+    for (const file of files) {
+      const imageId = crypto.randomUUID();
+      const arrayBuffer = await file.arrayBuffer();
+      const contentType = file.type || 'image/jpeg';
+      const image = await uploadPhoto(r2, photoId, imageId, arrayBuffer, contentType);
+      images.push(image);
+    }
     
     const photo: Photo = {
       id: photoId,
@@ -138,8 +142,8 @@ export async function POST(request: NextRequest) {
       contact,
       link,
       album_id,
-      r2_key: r2Key,
-      thumb_r2_key: thumbKey,
+      images,
+      cover_index: 0,
       is_pinned: false,
       created_at: new Date().toISOString(),
     };

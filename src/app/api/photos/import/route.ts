@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
         contact: iContact >= 0 ? (row[iContact] || '').trim() : '',
         link: iLink >= 0 ? (row[iLink] || '').trim() : '',
         album_id: iAlbumId >= 0 ? (row[iAlbumId] || '').trim() : '',
-        r2_key: '',
-        thumb_r2_key: '',
+        images: [],
+        cover_index: 0,
         is_pinned: iPinned >= 0 ? String(row[iPinned]).trim().toLowerCase() === 'true' : false,
         created_at: new Date().toISOString(),
       };

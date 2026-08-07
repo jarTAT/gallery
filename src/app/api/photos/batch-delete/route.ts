@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getKV, deletePhoto } from '@/lib/kv';
+import { getKV, getPhoto, deletePhoto } from '@/lib/kv';
 import { getR2, deletePhotoFiles } from '@/lib/r2';
 import { getCurrentUser } from '@/lib/auth';
 import { getEnv } from '@/lib/cloudflare';
@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
 
     let deleted = 0;
     for (const id of ids) {
-      await deletePhotoFiles(r2, id);
+      const existing = await getPhoto(kv, id);
+      if (existing) {
+        await deletePhotoFiles(r2, Array.isArray(existing.images) ? existing.images : []);
+      }
       await deletePhoto(kv, id);
       deleted++;
     }

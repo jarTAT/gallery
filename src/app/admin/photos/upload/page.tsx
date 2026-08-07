@@ -6,8 +6,8 @@ import { useAuth } from '@/components/AuthContext';
 import { Album } from '@/types';
 
 export default function UploadPhotoPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [tags, setTags] = useState('');
@@ -39,21 +39,32 @@ export default function UploadPhotoPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+
+    setFiles(selectedFiles);
+    const newPreviews: string[] = [];
+    selectedFiles.forEach((f) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result as string);
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === selectedFiles.length) {
+          setPreviews([...newPreviews]);
+        }
       };
-      reader.readAsDataURL(selectedFile);
-    }
+      reader.readAsDataURL(f);
+    });
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+    setPreviews(previews.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !name) {
-      setError('请选择文件并填写名称');
+    if (files.length === 0 || !name) {
+      setError('请至少选择一张照片并填写名称');
       return;
     }
 
@@ -61,7 +72,7 @@ export default function UploadPhotoPage() {
     setError('');
 
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach((f) => formData.append('files', f));
     formData.append('name', name);
     formData.append('price', price || '0');
     formData.append('tags', tags);
@@ -105,22 +116,47 @@ export default function UploadPhotoPage() {
 
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
-            <label className="label">照片文件 *</label>
+            <label className="label">照片文件 * (可多选，第一张为封面)</label>
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={handleFileChange}
               className="input"
             />
+            {files.length > 0 && (
+              <p className="text-sm text-gray-500 mt-2">已选择 {files.length} 张照片</p>
+            )}
           </div>
 
-          {preview && (
+          {previews.length > 0 && (
             <div className="mb-6">
-              <img
-                src={preview}
-                alt="Preview"
-                className="max-h-64 rounded-lg"
-              />
+              <label className="label">预览 (第一张为封面)</label>
+              <div className="flex flex-wrap gap-3">
+                {previews.map((preview, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      className={`h-24 w-24 object-cover rounded-lg ${
+                        index === 0 ? 'ring-2 ring-primary-600' : ''
+                      }`}
+                    />
+                    {index === 0 && (
+                      <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded">
+                        封面
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
