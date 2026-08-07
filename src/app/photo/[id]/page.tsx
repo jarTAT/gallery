@@ -238,11 +238,49 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+                }}
+                aria-label="上一张"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 hover:bg-white/10 rounded-full transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveIndex((prev) => (prev + 1) % images.length);
+                }}
+                aria-label="下一张"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+
           <img
             src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
             alt={photo.name}
             className="max-w-full max-h-full object-contain"
           />
+
+          {images.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3">
+              <div className="px-4 py-2 bg-black/50 text-white text-sm rounded-full">
+                {activeIndex + 1} / {images.length}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
