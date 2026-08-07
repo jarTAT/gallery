@@ -97,55 +97,6 @@ export default function HelpPage() {
         </section>
 
         <section className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">实用频道分享</h2>
-          <div className="space-y-6 text-gray-600">
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">💾 破解软件分享频道</h3>
-              <ul className="space-y-1.5">
-                <li><a href="https://t.me/PJAPK" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/PJAPK</a></li>
-                <li><a href="https://t.me/fun_apk" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/fun_apk</a></li>
-                <li><a href="https://t.me/watashinoAPPs" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/watashinoAPPs</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">🎮 黄油频道</h3>
-              <ul className="space-y-1.5">
-                <li><a href="https://t.me/HHYSHARE" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/HHYSHARE</a></li>
-                <li><a href="https://t.me/anotherfight" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/anotherfight</a></li>
-                <li><a href="https://t.me/huangyouqun" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/huangyouqun</a></li>
-                <li><a href="https://t.me/Zhzbzx" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/Zhzbzx</a></li>
-                <li><a href="https://t.me/ACGgamer" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/ACGgamer</a></li>
-                <li><a href="https://t.me/acggame" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/acggame</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">📖 H漫频道</h3>
-              <ul className="space-y-1.5">
-                <li><a href="https://t.me/manWu" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/manWu</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">🎥 影视群</h3>
-              <ul className="space-y-1.5">
-                <li><a href="https://t.me/joinchat/KmUaGU2yIP74UhZqCTON2w" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">远鉴字幕组的交流群</a>（已被封禁）</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">🤖 搜索 BOT（可用关键字词搜索频道和群组）</h3>
-              <ul className="space-y-1.5">
-                <li><a href="https://t.me/So1234Bot" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">@so123Bot</a></li>
-                <li><a href="https://t.me/hao1234bot" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">@hao1234bot</a></li>
-                <li><a href="https://t.me/ququn_bot" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">@ququn_bot</a>（专搜中文群组）</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">免责声明</h2>
           <p className="text-gray-500 text-sm leading-relaxed">
             所有内容均来源于公开网络教程整理，仅供参考学习使用。请遵守当地法律法规，合理、合规地使用相关工具与服务。本页所展示的第三方链接与本站无关。
