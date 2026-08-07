@@ -1,97 +1,155 @@
 export default function HelpPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">帮助中心</h1>
-      
+      <h1 className="text-3xl font-bold text-gray-900 mb-4">Telegram 入门教程</h1>
+      <p className="text-gray-500 mb-8 italic">此教程仅作为新手使用 Telegram 的教学，还有很多其他知识需要自己慢慢摸索。</p>
+
       <div className="space-y-8">
         <section className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">基本使用</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">简单介绍</h2>
+          <p className="text-gray-600 leading-relaxed">
+            Telegram（又称 TG、电报或纸飞机）是一款专注于速度与安全的跨平台即时通讯软件。因为不会收到审核管制所以常作为传播各种文件、视频、图片和自由聊天的工具，其核心功能——频道，对于文件分享功能更是如虎添翼。
+          </p>
+        </section>
+
+        <section className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">官网 &amp; 下载地址</h2>
           <ul className="space-y-3 text-gray-600">
             <li className="flex items-start">
               <span className="text-primary-600 mr-2">•</span>
-              浏览照片：在首页浏览所有照片，使用筛选功能快速找到您需要的内容
+              <span><b>官网地址</b>（提供各个平台版本下载）：<a href="https://telegram.org/" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">https://telegram.org/</a></span>
             </li>
             <li className="flex items-start">
               <span className="text-primary-600 mr-2">•</span>
-              查看详情：点击照片卡片进入详情页面，查看完整信息
+              <span><b>网页版地址</b>：<a href="https://web.telegram.org/" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">https://web.telegram.org/</a></span>
             </li>
             <li className="flex items-start">
               <span className="text-primary-600 mr-2">•</span>
-              查看原图：在详情页面点击图片可查看原图
+              <span><b>谷歌商店版</b>（安卓）：<a href="https://play.google.com/store/apps/details?id=org.thunderdog.challegram&hl=en" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">Play Store 下载</a></span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary-600 mr-2">•</span>
+              <span><b>官网安卓端</b>：<a href="https://telegram.org/android" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">https://telegram.org/android</a></span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary-600 mr-2">•</span>
+              <span><b>官网 iOS 端</b>：<a href="https://telegram.org/dl/ios" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">https://telegram.org/dl/ios</a></span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary-600 mr-2">•</span>
+              <span><b>官网 Win/Linux</b>：<a href="https://desktop.telegram.org/" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">https://desktop.telegram.org/</a></span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary-600 mr-2">•</span>
+              <span><b>官网 Mac 端</b>：<a href="https://macos.telegram.org/" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">https://macos.telegram.org/</a></span>
             </li>
           </ul>
         </section>
 
         <section className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">用户账号</h2>
-          <ul className="space-y-3 text-gray-600">
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              注册账号：点击右上角"注册"按钮，填写用户名、邮箱和密码
-            </li>
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              登录：使用注册的用户名和密码登录
-            </li>
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              会员权益：会员用户可无限次查看联系方式和链接信息
-            </li>
-          </ul>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">账号注册</h2>
+          <p className="text-gray-600 leading-relaxed">
+            根据提示输入区号（中国大陆为 +86）和手机号接收验证码即可完成注册。
+          </p>
         </section>
 
         <section className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">查看限制</h2>
-          <ul className="space-y-3 text-gray-600">
-            <li className="flex items-start">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">汉化方法</h2>
+          <div className="space-y-3 text-gray-600">
+            <div className="flex items-start">
               <span className="text-primary-600 mr-2">•</span>
-              未登录用户：无法查看联系方式和链接信息
-            </li>
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              普通会员：每日可查看5次联系方式和链接信息
-            </li>
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              VIP会员：无限次查看联系方式和链接信息
-            </li>
-          </ul>
-        </section>
-
-        <section className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">筛选功能</h2>
-          <ul className="space-y-3 text-gray-600">
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              价格区间：可选择0-500、500-1000、1000以上等价格范围
-            </li>
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              关键字搜索：支持按名称、标签、城市进行模糊搜索
-            </li>
-            <li className="flex items-start">
-              <span className="text-primary-600 mr-2">•</span>
-              城市筛选：输入城市名称筛选特定地区的照片
-            </li>
-          </ul>
-        </section>
-
-        <section className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">常见问题</h2>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">如何成为会员？</h3>
-              <p className="text-gray-600">请联系管理员开通会员权限。管理员会在后台为您设置会员有效期。</p>
+              <span>
+                <b>方法一</b>：在已有联系人或群组的情况下，发送这个链接
+                <a href="tg://setlanguage?lang=zhcncc" className="text-primary-600 hover:text-primary-700 break-all"> tg://setlanguage?lang=zhcncc</a> 再点击汉化即可
+              </span>
             </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">忘记密码怎么办？</h3>
-              <p className="text-gray-600">请联系管理员重置密码。</p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">照片可以下载吗？</h3>
-              <p className="text-gray-600">请尊重版权，照片仅供预览查看。如需使用请联系照片提供者。</p>
+            <div className="flex items-start">
+              <span className="text-primary-600 mr-2">•</span>
+              <span>
+                <b>方法二</b>：在软件内搜索框搜索 setlanguagelangzhcncc，或浏览器打开
+                <a href="https://t.me/setlanguagelangzhcncc" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all"> https://t.me/setlanguagelangzhcncc</a>
+                ，进入汉化频道，无需关注，点击其介绍页链接即可完成汉化
+              </span>
             </div>
           </div>
+        </section>
+
+        <section className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">加入群组 &amp; 订阅频道</h2>
+          <ol className="space-y-3 text-gray-600 list-decimal list-inside">
+            <li>通过软件内搜索框搜索频道代码（也就是频道链接后面那串字符）</li>
+            <li>使用搜索框查找频道名（不推荐，不一定能精确找到）</li>
+            <li>用浏览器打开频道链接，会自动跳转到软件里并进入频道</li>
+          </ol>
+        </section>
+
+        <section className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-amber-500">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">使用建议【很重要！】</h2>
+          <ol className="space-y-3 text-gray-600 list-decimal">
+            <li>此软件（包括网站）全程需要在<strong>科学上网</strong>环境下进行</li>
+            <li>注册账号时会要求你填写姓名（其实是让我修改网名），千万不要使用<strong>真实姓名</strong>！</li>
+            <li>某些频道可能会加入广告，请辨别真伪，建议<strong>不要乱点不明链接</strong></li>
+            <li>必须<strong>隐藏好自己的电话号码</strong>！位置在 设置 &gt; 隐私，保护个人隐私</li>
+            <li>开始使用前去 设置 &gt; 隐私 里把<strong>自动注销时间修改为最大值</strong>（一年），如果不想被删号，登录间隔千万不要超过一年</li>
+            <li><strong>发言要谨慎</strong>（在外网行为更需谨慎）！难免会遇到图谋不轨的人，一旦你的言论或行为被人盯上，轻则骚扰电话、广告信息，重则可能被开盒；如涉及严重违法行为、组织犯罪，很大概率会被调查</li>
+            <li>电报<strong>能使用代理</strong>（代理后可以不使用科学上网工具），有公益频道会定期分享免费代理，点击其链接可自动完成配置，但免费代理一般只能坚持一周至一月不等</li>
+          </ol>
+        </section>
+
+        <section className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">实用频道分享</h2>
+          <div className="space-y-6 text-gray-600">
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">💾 破解软件分享频道</h3>
+              <ul className="space-y-1.5">
+                <li><a href="https://t.me/PJAPK" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/PJAPK</a></li>
+                <li><a href="https://t.me/fun_apk" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/fun_apk</a></li>
+                <li><a href="https://t.me/watashinoAPPs" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/watashinoAPPs</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">🎮 黄油频道</h3>
+              <ul className="space-y-1.5">
+                <li><a href="https://t.me/HHYSHARE" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/HHYSHARE</a></li>
+                <li><a href="https://t.me/anotherfight" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/anotherfight</a></li>
+                <li><a href="https://t.me/huangyouqun" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/huangyouqun</a></li>
+                <li><a href="https://t.me/Zhzbzx" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/Zhzbzx</a></li>
+                <li><a href="https://t.me/ACGgamer" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/ACGgamer</a></li>
+                <li><a href="https://t.me/acggame" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/acggame</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">📖 H漫频道</h3>
+              <ul className="space-y-1.5">
+                <li><a href="https://t.me/manWu" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">t.me/manWu</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">🎥 影视群</h3>
+              <ul className="space-y-1.5">
+                <li><a href="https://t.me/joinchat/KmUaGU2yIP74UhZqCTON2w" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">远鉴字幕组的交流群</a>（已被封禁）</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-gray-900 mb-2">🤖 搜索 BOT（可用关键字词搜索频道和群组）</h3>
+              <ul className="space-y-1.5">
+                <li><a href="https://t.me/So1234Bot" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">@so123Bot</a></li>
+                <li><a href="https://t.me/hao1234bot" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">@hao1234bot</a></li>
+                <li><a href="https://t.me/ququn_bot" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 break-all">@ququn_bot</a>（专搜中文群组）</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">免责声明</h2>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            所有内容均来源于公开网络教程整理，仅供参考学习使用。请遵守当地法律法规，合理、合规地使用相关工具与服务。本页所展示的第三方链接与本站无关。
+          </p>
         </section>
       </div>
     </div>
