@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: 'Gallery',
+  name: '深圳老师百科',
   title: '照片库 - 高品质摄影图片素材展示与交易',
   description: '高品质摄影作品在线展示平台，汇集城市风光、建筑、景观等摄影素材，提供图片展示、分类筛选与会员浏览服务。',
   keywords: [

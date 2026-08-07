@@ -31,7 +31,7 @@ export default function Header() {
               <div className="w-5 h-5 bg-primary-300 rounded-full ring-2 ring-primary-700"></div>
               <div className="w-5 h-5 bg-accent-400 rounded-full ring-2 ring-primary-700"></div>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">Gallery</span>
+            <span className="text-xl font-bold text-white tracking-tight">深圳老师百科</span>
           </Link>
 
           <nav className="flex items-center space-x-6">
