@@ -62,7 +62,7 @@ export default function Header() {
                 >
                   <button className="flex items-center space-x-2 text-primary-100 hover:text-white">
                     <div className="w-8 h-8 bg-primary-500 ring-2 ring-primary-400 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-white">
+                      <span className="text-[10px] font-semibold text-white">
                         {user.username.charAt(0).toUpperCase()}
                       </span>
                     </div>
