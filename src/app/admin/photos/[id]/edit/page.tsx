@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
 import { Photo, Album, PhotoImage } from '@/types';
 
+export const runtime = 'edge';
+
 export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const [photo, setPhoto] = useState<Photo | null>(null);
