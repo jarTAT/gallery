@@ -32,7 +32,6 @@ export default function AdminLayout({
     { href: '/admin', label: '仪表盘', icon: '📊' },
     { href: '/admin/photos', label: '照片管理', icon: '🖼️' },
     { href: '/admin/photos/upload', label: '上传照片', icon: '📤' },
-    { href: '/admin/albums', label: '相册管理', icon: '📁' },
     { href: '/admin/users', label: '用户管理', icon: '👥' },
   ];
 

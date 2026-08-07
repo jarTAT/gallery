@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
-import { Photo, Album, PhotoImage } from '@/types';
+import { Photo, PhotoImage } from '@/types';
 
 export const runtime = 'edge';
 
 export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const [photo, setPhoto] = useState<Photo | null>(null);
-  const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +21,6 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
   const [district, setDistrict] = useState('');
   const [contact, setContact] = useState('');
   const [link, setLink] = useState('');
-  const [albumId, setAlbumId] = useState('');
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [removeIndices, setRemoveIndices] = useState<number[]>([]);
@@ -32,7 +30,6 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     fetchPhoto();
-    fetchAlbums();
   }, [id]);
 
   const fetchPhoto = async () => {
@@ -50,7 +47,6 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
         setDistrict(p.district);
         setContact(p.contact);
         setLink(p.link);
-        setAlbumId(p.album_id || '');
       } else {
         router.push('/admin/photos');
       }
@@ -59,18 +55,6 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
       router.push('/admin/photos');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchAlbums = async () => {
-    try {
-      const response = await fetch('/api/albums');
-      const result = await response.json();
-      if (result.success) {
-        setAlbums(result.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch albums:', error);
     }
   };
 
@@ -161,7 +145,6 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
         district,
         contact,
         link,
-        album_id: albumId,
       };
 
       if (removeIndices.length > 0) {
@@ -367,22 +350,6 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
                 className="input"
                 placeholder="标签1, 标签2, 标签3"
               />
-            </div>
-
-            <div>
-              <label className="label">相册</label>
-              <select
-                value={albumId}
-                onChange={(e) => setAlbumId(e.target.value)}
-                className="input"
-              >
-                <option value="">选择相册</option>
-                {albums.map((album) => (
-                  <option key={album.id} value={album.id}>
-                    {album.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="md:col-span-2">
