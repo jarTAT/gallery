@@ -115,7 +115,7 @@ export async function PUT(
       }
 
       if (Array.isArray(body.remove_indices)) {
-        const indices = body.remove_indices.map(Number).filter(i => !Number.isNaN(i));
+        const indices = (body.remove_indices as unknown[]).map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
         const currentImages = Array.isArray(existing.images) ? existing.images : [];
         const remaining: PhotoImage[] = [];
         for (let i = 0; i < currentImages.length; i++) {
