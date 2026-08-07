@@ -99,7 +99,7 @@ export default function HomePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">照片库</h1>
         <p className="text-gray-600">
-          共 {total} 张照片
+          上榜老师 {total} 人，以下内容来自网上公开信息收集整理，尽量保证真实；部分已验证。本站不对最终结果负责；请自行联系，谨慎出击。
         </p>
       </div>
       
