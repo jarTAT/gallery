@@ -68,6 +68,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <head>
+        <meta name="google-site-verification" content="N5LCKuluX55VBt1HRnABbPb9u11MNKU2XXkyDaAvpbQ" />
         <meta name="format-detection" content="telephone=no" />
         <script
           type="application/ld+json"
