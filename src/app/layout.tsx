@@ -1,10 +1,13 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/components/AuthContext';
 import Header from '@/components/Header';
-import { siteConfig, buildKeywords } from '@/lib/site-config';
+import { siteConfig, buildKeywords, absoluteUrl } from '@/lib/site-config';
+
+const ogImage = absoluteUrl(siteConfig.image);
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.title,
     template: `%s | ${siteConfig.name}`,
@@ -13,6 +16,9 @@ export const metadata: Metadata = {
   keywords: buildKeywords(),
   applicationName: siteConfig.name,
   authors: [{ name: siteConfig.name }],
+  icons: {
+    icon: '/favicon.svg',
+  },
   robots: {
     index: true,
     follow: true,
@@ -30,13 +36,28 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: siteConfig.title,
     description: siteConfig.description,
-    images: [{ url: `${siteConfig.url}/og-image.png`, width: 1200, height: 630, alt: siteConfig.name }],
+    images: [{ url: ogImage, width: 1200, height: 630, alt: siteConfig.name }],
   },
   twitter: {
     card: 'summary_large_image',
     title: siteConfig.title,
     description: siteConfig.description,
+    images: [ogImage],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0046AA',
+  colorScheme: 'light',
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteConfig.name,
+  url: siteConfig.url,
+  description: siteConfig.description,
+  inLanguage: 'zh-CN',
 };
 
 export default function RootLayout({
@@ -48,7 +69,10 @@ export default function RootLayout({
     <html lang="zh-CN">
       <head>
         <meta name="format-detection" content="telephone=no" />
-        <link rel="canonical" href={siteConfig.url} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
       </head>
       <body className="font-sans antialiased">
         <AuthProvider>

@@ -95,6 +95,9 @@ export default function HomePage() {
         title={siteConfig.title}
         description={siteConfig.description}
         keywords={buildKeywords()}
+        canonical="/"
+        type="website"
+        image={siteConfig.image}
       />
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">照片库</h1>

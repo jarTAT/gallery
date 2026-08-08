@@ -1,3 +1,18 @@
+import type { Metadata } from 'next';
+import { siteConfig } from '@/lib/site-config';
+
+export const metadata: Metadata = {
+  title: 'Telegram 入门教程',
+  description: 'Telegram（TG/纸飞机）新手入门教程：官网下载地址、账号注册、汉化方法、加入群组与频道，以及安全使用建议。',
+  alternates: { canonical: '/help' },
+  openGraph: {
+    title: `Telegram 入门教程 | ${siteConfig.name}`,
+    description: 'Telegram 新手入门教程：下载、注册、汉化和安全使用建议。',
+    type: 'website',
+    url: `${siteConfig.url}/help`,
+  },
+};
+
 export default function HelpPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

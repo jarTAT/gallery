@@ -14,8 +14,11 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
         <img
           src={`/api/photos/${photo.id}/thumb`}
           alt={photo.name}
+          width={480}
+          height={480}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
+          decoding="async"
         />
         <div className="absolute top-2 right-2 flex gap-2">
           {photo.is_pinned && (

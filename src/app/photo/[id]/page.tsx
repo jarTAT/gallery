@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
 import { Photo } from '@/types';
 import Seo from '@/components/Seo';
-import { buildKeywords } from '@/lib/site-config';
+import { buildKeywords, siteConfig, absoluteUrl } from '@/lib/site-config';
 
 export const runtime = 'edge';
 
@@ -94,12 +94,32 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
   const images = Array.isArray(photo.images) ? photo.images : [];
   const coverIndex = Math.min(photo.cover_index || 0, Math.max(images.length - 1, 0));
 
+  const photoTitle = `${photo.name} - 摄影图片 | ${photo.city}${photo.district}`;
+  const photoDescription = `${photo.name}，${photo.city}${photo.district}摄影作品，价格 ¥${photo.price}。${photo.tags.length > 0 ? '标签：' + photo.tags.join('、') + '。' : ''}浏览更多高品质摄影图片。`;
+  const keywords = buildKeywords([photo.name, photo.city, photo.district, ...photo.tags]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Seo
-        title={`${photo.name} - 摄影图片 | ${photo.city}${photo.district}`}
-        description={`${photo.name}，${photo.city}${photo.district}摄影作品，价格 ¥${photo.price}。${photo.tags.length > 0 ? '标签：' + photo.tags.join('、') + '。' : ''}浏览更多高品质摄影图片。`}
-        keywords={buildKeywords([photo.name, photo.city, photo.district, ...photo.tags])}
+        title={photoTitle}
+        description={photoDescription}
+        keywords={keywords}
+        canonical={`/photo/${photo.id}`}
+        type="product"
+        image={`/api/photos/${photo.id}/thumb`}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'ImageObject',
+          name: photo.name,
+          description: photoDescription,
+          contentUrl: absoluteUrl(`/api/photos/${photo.id}/original?index=${coverIndex}`),
+          thumbnailUrl: absoluteUrl(`/api/photos/${photo.id}/thumb?index=${coverIndex}`),
+          datePublished: photo.created_at,
+          creator: {
+            '@type': 'Person',
+            name: photo.city ? `${photo.city}${photo.district}` : siteConfig.name,
+          },
+        }}
       />
       <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,6 +137,8 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
             <img
               src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
               alt={photo.name}
+              width={1200}
+              height={1200}
               className="w-full h-full object-contain"
             />
             <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-lg">
@@ -137,6 +159,8 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
                   <img
                     src={`/api/photos/${photo.id}/thumb?index=${index}`}
                     alt={`${photo.name} ${index + 1}`}
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                   />
                 </button>
@@ -271,6 +295,8 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
           <img
             src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
             alt={photo.name}
+            width={1920}
+            height={1920}
             className="max-w-full max-h-full object-contain"
           />
 
