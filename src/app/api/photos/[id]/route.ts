@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getPhoto, updatePhoto, deletePhoto } from '@/lib/kv';
-import { getR2, deletePhotoFiles, deletePhotoImageFiles, uploadPhoto } from '@/lib/r2';
+import { getR2, deletePhotoFiles, deletePhotoImageFiles, uploadPhoto, firstImageIndex, resolveCoverIndex, isMediaVideo } from '@/lib/r2';
 import { getCurrentUser } from '@/lib/auth';
 import { Photo, PhotoImage } from '@/types';
 import { getEnv } from '@/lib/cloudflare';
@@ -89,6 +89,13 @@ export async function PUT(
 
       updates.images = images;
 
+      if (images.length > 0 && firstImageIndex(images) === -1) {
+        return NextResponse.json(
+          { success: false, error: '视频不能作为封面，至少需要一张图片' },
+          { status: 400 }
+        );
+      }
+
       if (formData.get('name') !== null) updates.name = formData.get('name') as string;
       if (formData.get('price') !== null) updates.price = parseInt(formData.get('price') as string || '0');
       if (formData.get('tags') !== null) updates.tags = (formData.get('tags') as string || '').split(',').filter(Boolean);
@@ -100,7 +107,20 @@ export async function PUT(
       if (formData.get('is_pinned') !== null) updates.is_pinned = formData.get('is_pinned') === 'true';
       if (formData.get('cover_index') !== null) {
         const ci = parseInt(formData.get('cover_index') as string);
-        updates.cover_index = Number.isNaN(ci) ? existing.cover_index : Math.min(Math.max(ci, 0), images.length - 1);
+        if (Number.isNaN(ci)) {
+          updates.cover_index = resolveCoverIndex(images, existing.cover_index);
+        } else {
+          const target = Math.min(Math.max(ci, 0), images.length - 1);
+          if (isMediaVideo(images[target])) {
+            return NextResponse.json(
+              { success: false, error: '视频不能作为封面，请选择一张图片' },
+              { status: 400 }
+            );
+          }
+          updates.cover_index = target;
+        }
+      } else {
+        updates.cover_index = resolveCoverIndex(images, existing.cover_index);
       }
     } else {
       const body = await request.json();
@@ -115,25 +135,45 @@ export async function PUT(
       if (body.album_id !== undefined) updates.album_id = body.album_id;
       if (body.is_pinned !== undefined) updates.is_pinned = Boolean(body.is_pinned);
 
-      if (body.cover_index !== undefined) {
-        const count = Array.isArray(existing.images) ? existing.images.length : 0;
-        const ci = parseInt(body.cover_index);
-        updates.cover_index = Number.isNaN(ci) ? existing.cover_index : Math.min(Math.max(ci, 0), Math.max(count - 1, 0));
-      }
+      let remaining = Array.isArray(existing.images) ? existing.images : [];
+      let removing = false;
 
       if (Array.isArray(body.remove_indices)) {
+        removing = true;
         const indices = (body.remove_indices as unknown[]).map((v: unknown) => Number(v)).filter((n: number) => !Number.isNaN(n));
         const currentImages = Array.isArray(existing.images) ? existing.images : [];
-        const remaining: PhotoImage[] = [];
+        const next: PhotoImage[] = [];
         for (let i = 0; i < currentImages.length; i++) {
           if (!indices.includes(i)) {
-            remaining.push(currentImages[i]);
+            next.push(currentImages[i]);
           } else {
             await deletePhotoImageFiles(r2, context.params.id, currentImages[i]?.key?.split('/').pop() || crypto.randomUUID());
           }
         }
+        remaining = next;
         updates.images = remaining;
-        updates.cover_index = Math.min(existing.cover_index, Math.max(remaining.length - 1, 0));
+      }
+
+      if (body.cover_index !== undefined) {
+        const count = remaining.length;
+        const ci = parseInt(body.cover_index);
+        const target = Number.isNaN(ci) ? existing.cover_index : Math.min(Math.max(ci, 0), Math.max(count - 1, 0));
+        const hasImage = firstImageIndex(remaining) >= 0;
+        if (hasImage && isMediaVideo(remaining[target])) {
+          return NextResponse.json(
+            { success: false, error: '视频不能作为封面，请选择一张图片' },
+            { status: 400 }
+          );
+        }
+        updates.cover_index = Number.isNaN(ci) && count > 0 ? resolveCoverIndex(remaining, existing.cover_index) : target;
+      } else if (removing) {
+        if (remaining.length > 0 && firstImageIndex(remaining) === -1) {
+          return NextResponse.json(
+            { success: false, error: '视频不能作为封面，至少需要一张图片' },
+            { status: 400 }
+          );
+        }
+        updates.cover_index = resolveCoverIndex(remaining, existing.cover_index);
       }
     }
 

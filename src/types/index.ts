@@ -8,9 +8,12 @@ export interface User {
   created_at: string;
 }
 
+export type PhotoMediaType = 'image' | 'video';
+
 export interface PhotoImage {
   key: string;
   thumb_key: string;
+  type?: PhotoMediaType;
 }
 
 export interface Photo {

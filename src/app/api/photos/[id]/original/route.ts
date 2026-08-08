@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getPhoto } from '@/lib/kv';
-import { getR2, getPhotoImageObject } from '@/lib/r2';
+import { getR2, servePhotoMedia } from '@/lib/r2';
 import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
@@ -37,22 +37,16 @@ export async function GET(
       );
     }
 
-    const object = await getPhotoImageObject(r2, image.key);
-    if (!object) {
-      return NextResponse.json(
-        { success: false, error: 'Photo file not found' },
-        { status: 404 }
-      );
-    }
+    const served = await servePhotoMedia(
+      r2,
+      image.key,
+      request.headers.get('range'),
+      'image/jpeg'
+    );
 
-    const arrayBuffer = await object.arrayBuffer();
-
-    return new NextResponse(arrayBuffer, {
-      headers: {
-        'Content-Type': object.httpMetadata?.contentType || 'image/jpeg',
-        'Cache-Control': 'public, max-age=31536000, immutable',
-        'ETag': object.etag,
-      },
+    return new Response(served.body, {
+      status: served.status,
+      headers: served.headers,
     });
   } catch (error) {
     console.error('Get photo file error:', error);

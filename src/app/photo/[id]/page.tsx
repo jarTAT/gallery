@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
-import { Photo } from '@/types';
+import { Photo, PhotoMediaType } from '@/types';
 import Seo from '@/components/Seo';
 import { buildKeywords, siteConfig, absoluteUrl } from '@/lib/site-config';
 
@@ -93,6 +93,8 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
 
   const images = Array.isArray(photo.images) ? photo.images : [];
   const coverIndex = Math.min(photo.cover_index || 0, Math.max(images.length - 1, 0));
+  const mediaType = (index: number): PhotoMediaType => images[index]?.type || 'image';
+  const activeIsVideo = mediaType(activeIndex) === 'video';
 
   const photoTitle = `${photo.name} - 摄影图片 | ${photo.city}${photo.district}`;
   const photoDescription = `${photo.name}，${photo.city}${photo.district}摄影作品，价格 ¥${photo.price}。${photo.tags.length > 0 ? '标签：' + photo.tags.join('、') + '。' : ''}浏览更多高品质摄影图片。`;
@@ -130,39 +132,66 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
-          <div 
-            className="aspect-square relative overflow-hidden bg-gray-100 rounded-xl cursor-pointer"
-            onClick={() => setShowFullImage(true)}
-          >
-            <img
-              src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
-              alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
-              width={1200}
-              height={1200}
-              className="w-full h-full object-contain"
-            />
-            <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-lg">
-              点击查看原图
-            </div>
+          <div className="relative overflow-hidden bg-gray-100 rounded-xl">
+            {activeIsVideo ? (
+              <video
+                src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full aspect-square object-contain"
+              />
+            ) : (
+              <div
+                className="relative aspect-square cursor-pointer"
+                onClick={() => setShowFullImage(true)}
+              >
+                <img
+                  src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
+                  alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
+                  width={1200}
+                  height={1200}
+                  className="w-full h-full object-contain"
+                />
+                <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/50 text-white text-sm rounded-lg">
+                  点击查看原图
+                </div>
+              </div>
+            )}
           </div>
 
           {images.length > 1 && (
             <div className="flex gap-2 flex-wrap">
-              {images.map((_, index) => (
+              {images.map((img, index) => (
                 <button
                   key={index}
                   onClick={() => setActiveIndex(index)}
-                  className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                  className={`relative h-16 w-16 rounded-lg overflow-hidden border-2 transition-colors ${
                     activeIndex === index ? 'border-primary-600' : 'border-transparent hover:border-gray-300'
                   }`}
                 >
-                  <img
-                    src={`/api/photos/${photo.id}/thumb?index=${index}`}
-                    alt={`${photo.name} ${index + 1}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                  />
+                  {img?.type === 'video' ? (
+                    <video
+                      src={`/api/photos/${photo.id}/thumb?index=${index}`}
+                      className="w-full h-full object-cover"
+                      preload="metadata"
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={`/api/photos/${photo.id}/thumb?index=${index}`}
+                      alt={`${photo.name} ${index + 1}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  {img?.type === 'video' && (
+                    <span className="absolute bottom-0 right-0 px-1 py-0.5 bg-black/60 text-white text-[10px] rounded-tl-lg">
+                      ▶ 视频
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -292,13 +321,23 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
             </>
           )}
 
-          <img
-            src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
-            alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
-            width={1920}
-            height={1920}
-            className="max-w-full max-h-full object-contain"
-          />
+          {activeIsVideo ? (
+            <video
+              src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
+              controls
+              autoPlay
+              playsInline
+              className="max-w-full max-h-full"
+            />
+          ) : (
+            <img
+              src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
+              alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
+              width={1920}
+              height={1920}
+              className="max-w-full max-h-full object-contain"
+            />
+          )}
 
           {images.length > 1 && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3">

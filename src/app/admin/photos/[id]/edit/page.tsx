@@ -96,6 +96,11 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
       return;
     }
 
+    if (images[index]?.type === 'video') {
+      setError('视频不能作为封面，请选择一张图片');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/photos/${id}`, {
         method: 'PUT',
@@ -122,9 +127,15 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
     }
 
     const images = photo?.images || [];
-    const remainingCount = images.length - removeIndices.length;
-    if (remainingCount === 0 && newFiles.length === 0) {
+    const remaining = images.filter((_, i) => !removeIndices.includes(i));
+    const remainingImageCount = remaining.filter((i) => i?.type !== 'video').length;
+    const newImageCount = newFiles.filter((f) => !f.type.startsWith('video/')).length;
+    if (images.length === 0 && newFiles.length === 0) {
       setError('至少保留一张照片');
+      return;
+    }
+    if (remainingImageCount + newImageCount === 0) {
+      setError('视频不能作为封面，至少保留一张图片');
       return;
     }
 
@@ -221,7 +232,7 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
 
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
-            <label className="label">已上传图片 (点击缩略图设置为封面)</label>
+            <label className="label">已上传图片 (点击图片设置为封面；视频不能作为封面)</label>
             {images.length === 0 ? (
               <p className="text-sm text-gray-500">暂无图片</p>
             ) : (
@@ -231,17 +242,37 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
                     key={index}
                     className={`relative ${removeIndices.includes(index) ? 'opacity-40' : ''}`}
                   >
-                    <button type="button" onClick={() => handleSetCover(index)}>
-                      <img
-                        src={`/api/photos/${photo.id}/thumb?index=${index}`}
-                        alt={`Image ${index + 1}`}
-                        className={`h-24 w-24 object-cover rounded-lg border-2 ${
-                          photo.cover_index === index
-                            ? 'border-primary-600'
-                            : 'border-transparent hover:border-gray-300'
-                        }`}
-                      />
+                    <button
+                      type="button"
+                      onClick={() => handleSetCover(index)}
+                      title={img?.type === 'video' ? '视频不能设为封面' : '设为封面'}
+                      className={img?.type === 'video' ? 'cursor-not-allowed' : ''}
+                    >
+                      {img?.type === 'video' ? (
+                        <video
+                          src={`/api/photos/${photo.id}/thumb?index=${index}`}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="h-24 w-24 object-cover rounded-lg border-2 border-transparent"
+                        />
+                      ) : (
+                        <img
+                          src={`/api/photos/${photo.id}/thumb?index=${index}`}
+                          alt={`Image ${index + 1}`}
+                          className={`h-24 w-24 object-cover rounded-lg border-2 ${
+                            photo.cover_index === index
+                              ? 'border-primary-600'
+                              : 'border-transparent hover:border-gray-300'
+                          }`}
+                        />
+                      )}
                     </button>
+                    {img?.type === 'video' && (
+                      <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-accent-500 text-white text-xs rounded">
+                        ▶ 视频
+                      </span>
+                    )}
                     {photo.cover_index === index && (
                       <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded">
                         封面
@@ -268,32 +299,50 @@ export default function EditPhotoPage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="mb-6">
-            <label className="label">添加更多图片 (可多选)</label>
+            <label className="label">添加更多照片/视频 (可多选，第一张图片为默认封面)</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
               onChange={handleNewFiles}
               className="input mb-3"
             />
             {newPreviews.length > 0 && (
               <div className="flex flex-wrap gap-3">
-                {newPreviews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={preview}
-                      alt={`New ${index + 1}`}
-                      className="h-24 w-24 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeNewFile(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                {newFiles.map((file, index) => {
+                  const isVideo = file.type.startsWith('video/');
+                  return (
+                    <div key={index} className="relative">
+                      {isVideo ? (
+                        <video
+                          src={newPreviews[index]}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="h-24 w-24 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <img
+                          src={newPreviews[index]}
+                          alt={`New ${index + 1}`}
+                          className="h-24 w-24 object-cover rounded-lg"
+                        />
+                      )}
+                      {isVideo && (
+                        <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-accent-500 text-white text-xs rounded">
+                          ▶ 视频
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeNewFile(index)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

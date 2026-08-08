@@ -316,11 +316,25 @@ export default function AdminPhotosPage() {
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
                       {Array.isArray(photo.images) && photo.images.length > 0 ? (
-                        <img
-                          className="h-10 w-10 rounded-lg object-cover"
-                          src={`/api/photos/${photo.id}/thumb?index=${photo.cover_index || 0}`}
-                          alt={photo.name}
-                        />
+                        (() => {
+                          const firstImage = photo.images.findIndex((i) => i?.type !== 'video');
+                          const coverIndex = firstImage >= 0 ? firstImage : (photo.cover_index || 0);
+                          return photo.images[coverIndex]?.type === 'video' ? (
+                            <video
+                              className="h-10 w-10 rounded-lg object-cover"
+                              src={`/api/photos/${photo.id}/thumb?index=${coverIndex}`}
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                          ) : (
+                            <img
+                              className="h-10 w-10 rounded-lg object-cover"
+                              src={`/api/photos/${photo.id}/thumb?index=${coverIndex}`}
+                              alt={photo.name}
+                            />
+                          );
+                        })()
                       ) : (
                         <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
                           无图

@@ -67,6 +67,10 @@ export default function UploadPhotoPage() {
       setError('请至少选择一张照片并填写名称');
       return;
     }
+    if (!files.some((f) => !f.type.startsWith('video/'))) {
+      setError('视频不能作为封面，请至少选择一张图片');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -116,46 +120,65 @@ export default function UploadPhotoPage() {
 
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
-            <label className="label">照片文件 * (可多选，第一张为封面)</label>
+            <label className="label">照片/视频文件 * (可多选，第一张图片为封面；视频不能作为封面)</label>
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
               onChange={handleFileChange}
               className="input"
             />
             {files.length > 0 && (
-              <p className="text-sm text-gray-500 mt-2">已选择 {files.length} 张照片</p>
+              <p className="text-sm text-gray-500 mt-2">已选择 {files.length} 个文件</p>
             )}
           </div>
 
           {previews.length > 0 && (
             <div className="mb-6">
-              <label className="label">预览 (第一张为封面)</label>
+              <label className="label">预览 (封面自动选择第一张图片)</label>
               <div className="flex flex-wrap gap-3">
-                {previews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index + 1}`}
-                      className={`h-24 w-24 object-cover rounded-lg ${
-                        index === 0 ? 'ring-2 ring-primary-600' : ''
-                      }`}
-                    />
-                    {index === 0 && (
-                      <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded">
-                        封面
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                {files.map((file, index) => {
+                  const isVideo = file.type.startsWith('video/');
+                  const isCover = !isVideo && files.findIndex((f) => !f.type.startsWith('video/')) === index;
+                  return (
+                    <div key={index} className="relative">
+                      {isVideo ? (
+                        <video
+                          src={previews[index]}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="h-24 w-24 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <img
+                          src={previews[index]}
+                          alt={`Preview ${index + 1}`}
+                          className={`h-24 w-24 object-cover rounded-lg ${
+                            isCover ? 'ring-2 ring-primary-600' : ''
+                          }`}
+                        />
+                      )}
+                      {isVideo && (
+                        <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-accent-500 text-white text-xs rounded">
+                          ▶ 视频
+                        </span>
+                      )}
+                      {isCover && (
+                        <span className="absolute -top-2 -left-2 px-1.5 py-0.5 bg-primary-600 text-white text-xs rounded">
+                          封面
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

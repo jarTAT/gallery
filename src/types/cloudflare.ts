@@ -40,7 +40,7 @@ export interface KVNamespaceKey<Metadata = unknown> {
 }
 
 export interface R2Bucket {
-  get(key: string): Promise<R2ObjectBody | null>;
+  get(key: string, options?: { range?: R2ObjectRange }): Promise<R2ObjectBody | null>;
   put(key: string, value: ReadableStream | ArrayBuffer | ArrayBufferView | string, options?: R2PutOptions): Promise<R2Object>;
   delete(key: string | string[]): Promise<void>;
   list(options?: R2ListOptions): Promise<R2Objects>;

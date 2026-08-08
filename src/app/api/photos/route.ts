@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getKV, getAllPhotos, setPhoto } from '@/lib/kv';
-import { getR2, uploadPhoto } from '@/lib/r2';
+import { getR2, uploadPhoto, firstImageIndex, deletePhotoFiles } from '@/lib/r2';
 import { getCurrentUser } from '@/lib/auth';
 import { Photo, PaginatedResponse, PhotoImage } from '@/types';
 import { getEnv } from '@/lib/cloudflare';
@@ -138,6 +138,15 @@ export async function POST(request: NextRequest) {
       const image = await uploadPhoto(r2, photoId, imageId, arrayBuffer, contentType);
       images.push(image);
     }
+
+    // Videos cannot be the cover; require at least one real image.
+    if (firstImageIndex(images) === -1) {
+      await deletePhotoFiles(r2, images);
+      return NextResponse.json(
+        { success: false, error: '视频不能作为封面，至少需要上传一张图片' },
+        { status: 400 }
+      );
+    }
     
     const photo: Photo = {
       id: photoId,
@@ -150,7 +159,7 @@ export async function POST(request: NextRequest) {
       link,
       album_id,
       images,
-      cover_index: 0,
+      cover_index: firstImageIndex(images),
       is_pinned: false,
       created_at: new Date().toISOString(),
     };
