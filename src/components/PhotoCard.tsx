@@ -13,7 +13,7 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
       <div className="aspect-square relative overflow-hidden bg-gray-100">
         <img
           src={`/api/photos/${photo.id}/thumb?index=${photo.cover_index || 0}`}
-          alt={photo.name}
+          alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
           width={480}
           height={480}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

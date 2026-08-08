@@ -136,7 +136,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
           >
             <img
               src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
-              alt={photo.name}
+              alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
               width={1200}
               height={1200}
               className="w-full h-full object-contain"
@@ -158,7 +158,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
                 >
                   <img
                     src={`/api/photos/${photo.id}/thumb?index=${index}`}
-                    alt={`${photo.name} ${index + 1}`}
+                    alt={`${photo.name} ${index + 1}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
                     width={64}
                     height={64}
                     className="w-full h-full object-cover"
@@ -294,7 +294,7 @@ export default function PhotoDetailPage({ params }: { params: { id: string } }) 
 
           <img
             src={`/api/photos/${photo.id}/original?index=${activeIndex}`}
-            alt={photo.name}
+            alt={`${photo.name}${photo.tags && photo.tags.length > 0 ? ' ' + photo.tags.join(' ') : ''}`}
             width={1920}
             height={1920}
             className="max-w-full max-h-full object-contain"
