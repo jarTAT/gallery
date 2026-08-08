@@ -12,7 +12,7 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
     <Link href={`/photo/${photo.id}`} className="card group">
       <div className="aspect-square relative overflow-hidden bg-gray-100">
         <img
-          src={`/api/photos/${photo.id}/thumb`}
+          src={`/api/photos/${photo.id}/thumb?index=${photo.cover_index || 0}`}
           alt={photo.name}
           width={480}
           height={480}

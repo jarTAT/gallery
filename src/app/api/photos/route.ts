@@ -7,10 +7,17 @@ import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
+function sanitizePhoto(photo: Photo, showContact: boolean): Photo {
+  if (showContact) return photo;
+  return { ...photo, contact: '', link: '' };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const env = await getEnv();
     const kv = getKV(env);
+    const user = await getCurrentUser(request, env.JWT_SECRET);
+    const showContact = user?.role === 'admin';
     
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -69,7 +76,7 @@ export async function GET(request: NextRequest) {
     
     const total = photos.length;
     const offset = (page - 1) * limit;
-    const paginatedPhotos = photos.slice(offset, offset + limit);
+    const paginatedPhotos = photos.slice(offset, offset + limit).map(p => sanitizePhoto(p, showContact));
     
     const response: PaginatedResponse<Photo> = {
       data: paginatedPhotos,

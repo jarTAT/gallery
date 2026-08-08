@@ -23,10 +23,11 @@ export async function GET(
     }
 
     const { searchParams } = new URL(request.url);
-    const requestedIndex = parseInt(searchParams.get('index') || '0');
+    const coverIndex = Math.min(photo.cover_index || 0, photo.images.length - 1);
+    const requestedIndex = parseInt(searchParams.get('index') || '');
     const index = Number.isNaN(requestedIndex)
-      ? Math.min(photo.cover_index, photo.images.length - 1)
-      : requestedIndex;
+      ? coverIndex
+      : Math.min(Math.max(requestedIndex, 0), photo.images.length - 1);
 
     const image = (photo.images && photo.images[index]) || null;
     if (!image || !image.key) {

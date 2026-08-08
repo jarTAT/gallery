@@ -318,7 +318,7 @@ export default function AdminPhotosPage() {
                       {Array.isArray(photo.images) && photo.images.length > 0 ? (
                         <img
                           className="h-10 w-10 rounded-lg object-cover"
-                          src={`/api/photos/${photo.id}/thumb`}
+                          src={`/api/photos/${photo.id}/thumb?index=${photo.cover_index || 0}`}
                           alt={photo.name}
                         />
                       ) : (

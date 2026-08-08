@@ -7,6 +7,11 @@ import { getEnv } from '@/lib/cloudflare';
 
 export const runtime = 'edge';
 
+function sanitizePhoto(photo: Photo, showContact: boolean): Photo {
+  if (showContact) return photo;
+  return { ...photo, contact: '', link: '' };
+}
+
 export async function GET(
   request: NextRequest,
   context: { params: { id: string } }
@@ -14,7 +19,9 @@ export async function GET(
   try {
     const env = await getEnv();
     const kv = getKV(env);
-    
+    const user = await getCurrentUser(request, env.JWT_SECRET);
+    const showContact = user?.role === 'admin';
+
     const photo = await getPhoto(kv, context.params.id);
     if (!photo) {
       return NextResponse.json(
@@ -22,8 +29,8 @@ export async function GET(
         { status: 404 }
       );
     }
-    
-    return NextResponse.json({ success: true, data: photo });
+
+    return NextResponse.json({ success: true, data: sanitizePhoto(photo, showContact) });
   } catch (error) {
     console.error('Get photo error:', error);
     return NextResponse.json(
