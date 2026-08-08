@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-8">仪表盘</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center">
             <div className="p-3 bg-primary-100 rounded-lg">
@@ -63,18 +63,6 @@ export default function AdminDashboard() {
             <div className="ml-4">
               <p className="text-sm text-gray-500">照片总数</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalPhotos}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <span className="text-2xl">📁</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-500">相册总数</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalAlbums}</p>
             </div>
           </div>
         </div>
