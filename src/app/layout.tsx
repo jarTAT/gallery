@@ -69,6 +69,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <head>
         <meta name="google-site-verification" content="N5LCKuluX55VBt1HRnABbPb9u11MNKU2XXkyDaAvpbQ" />
+        <meta name="msvalidate.01" content="A91F245E8509048BF18D7142D0347411" />
         <meta name="format-detection" content="telephone=no" />
         <script
           type="application/ld+json"
